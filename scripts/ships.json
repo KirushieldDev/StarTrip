@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "name": "YT-1300",
+    "camp": "Contrebandiers",
+    "speed_kmh": 1180000000,
+    "capacity": 2
+  },
+  {
+    "id": 2,
+    "name": "Lambda-class Shuttle",
+    "camp": "Empire",
+    "speed_kmh": 1112303841.9215,
+    "capacity": 4
+  },
+  {
+    "id": 3,
+    "name": "Sentinel-class Landing Craft",
+    "camp": "Empire",
+    "speed_kmh": 1041176672.2256,
+    "capacity": 3
+  },
+  {
+    "id": 4,
+    "name": "Ghost",
+    "camp": "Rebelles",
+    "speed_kmh": 1022003983.8541,
+    "capacity": 4
+  },
+  {
+    "id": 5,
+    "name": "GR-75 Medium Transport",
+    "camp": "Rebelles",
+    "speed_kmh": 1062040280.2394,
+    "capacity": 4
+  },
+  {
+    "id": 6,
+    "name": "Class Four Container Transport",
+    "camp": "Empire",
+    "speed_kmh": 1112316955.9073,
+    "capacity": 4
+  },
+  {
+    "id": 7,
+    "name": "HWK-290",
+    "camp": "Rebelles",
+    "speed_kmh": 1138197066.1581,
+    "capacity": 3
+  },
+  {
+    "id": 8,
+    "name": "YT-2400",
+    "camp": "Contrebandiers",
+    "speed_kmh": 1101248585.7946,
+    "capacity": 4
+  },
+  {
+    "id": 9,
+    "name": "VCX-100",
+    "camp": "Rebelles",
+    "speed_kmh": 1158975248.0532,
+    "capacity": 5
+  },
+  {
+    "id": 10,
+    "name": "Delta-class T-3c Shuttle",
+    "camp": "Empire",
+    "speed_kmh": 1117502361.2881,
+    "capacity": 3
+  }
+]
