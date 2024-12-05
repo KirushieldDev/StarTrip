@@ -1,0 +1,12 @@
+<?php
+     $host = "";
+     $db_name = "";
+     $user = "";
+     $pass = "";
+
+     try {
+         $cnx = new PDO("mysql:host=$host;dbname=$db_name", $user, $pass);
+     } catch (PDOException $e) {
+         echo $e;
+     }
+?>
