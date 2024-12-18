@@ -1,37 +1,34 @@
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 public class QueryData {
     public static void main(String[] args) {
-        String querySql = "SELECT * FROM ship";
+        String querySql = "SELECT planet_id, destination_planet_id, day_of_week, departure_time, ship_id FROM trip";
+        Graph graph = new Graph();
 
         try (Connection con = DatabaseConnection.getConnection();
              Statement stmt = con.createStatement();
              ResultSet rs = stmt.executeQuery(querySql)) {
 
-            // Récupérer les métadonnées pour obtenir des informations sur les colonnes
-            ResultSetMetaData metaData = rs.getMetaData();
-            int columnCount = metaData.getColumnCount();
-
-            // Afficher les noms des colonnes
-            for (int i = 1; i <= columnCount; i++) {
-                System.out.print(metaData.getColumnName(i) + "\t");
-            }
-            System.out.println();
-
-            // Parcourir et afficher les lignes de résultats
+            // Build the graph from the data
             while (rs.next()) {
-                for (int i = 1; i <= columnCount; i++) {
-                    System.out.print(rs.getString(i) + "\t");
-                }
-                System.out.println();
+                int sourcePlanet = rs.getInt("planet_id");
+                int destPlanet = rs.getInt("destination_planet_id");
+                String dayOfWeek = rs.getString("day_of_week");
+                String departureTime = rs.getString("departure_time");
+                int shipId = rs.getInt("ship_id");
+
+                graph.addEdge(sourcePlanet, destPlanet, dayOfWeek, departureTime, shipId);
             }
+
+            // Display the graph
+            System.out.println("Graph structure:");
+            graph.printGraph();
 
         } catch (SQLException e) {
-            System.err.println("Erreur lors de l'exécution de la requête : " + e.getMessage());
+            System.err.println("Error executing query: " + e.getMessage());
         }
     }
 }
