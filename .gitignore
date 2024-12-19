@@ -1,2 +1,3 @@
 configs/config.php
 java/src/DatabaseConnection.java
+.idea/
