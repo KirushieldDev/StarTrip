@@ -44,4 +44,8 @@ public class Graph {
         }
         System.out.print(sb.toString());
     }
+
+    public Map<Integer, List<Edge>> getAdjacencyList() {
+        return adjacencyList;
+    }
 } 
