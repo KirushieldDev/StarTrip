@@ -1,182 +1,139 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <string.h>
+#include <limits.h>
 
-// Structure pour représenter une planète
+#define INFINITY LLONG_MAX
+#define MAX_PLANETS 6000
+#define MAX_TRIPS 128000
+
 typedef struct {
-    int id;         // Identifiant unique de la planète
-    float x, y;     // Coordonnées de la planète
-} Planet;
+    long long destination;
+    double distance;
+} Edge;
 
-// Structure pour représenter un trajet
-typedef struct {
-    int planet_id;            // Planète de départ
-    int destination_planet_id; // Planète d'arrivée
-    float distance;           // Distance entre les planètes
-    int ship_id;              // ID du vaisseau utilisé
-} Trip;
-
-// Structure pour représenter un vaisseau
-typedef struct {
-    int id;            // Identifiant unique du vaisseau
-    float speed_kmh;   // Vitesse en km/h
-} Ship;
-
-// Structure pour le nœud de l'algorithme A*
 typedef struct Node {
-    int planet_id;          // ID de la planète
-    float g_cost;           // Coût réel pour atteindre ce nœud
-    float h_cost;           // Heuristique (distance estimée jusqu'à la destination)
-    float f_cost;           // g_cost + h_cost
-    struct Node *next;      // Pointeur vers le nœud suivant dans la liste
-    struct Node *parent;    // Pointeur vers le parent
+    Edge edge;
+    struct Node *next;
 } Node;
 
-// Fonction pour calculer la distance entre deux planètes
-float calculate_distance(float x1, float y1, float x2, float y2) {
-    return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
+typedef struct {
+    Node *adjacency_list[MAX_PLANETS];
+} Graph;
+
+// File de priorité pour le Dijkstra
+typedef struct {
+    long long planet;
+    double distance;
+} PriorityQueueNode;
+
+Graph* create_graph() {
+    Graph *graph = (Graph *)malloc(sizeof(Graph));
+    for (int i = 0; i < MAX_PLANETS; i++) {
+        graph->adjacency_list[i] = NULL;
+    }
+    return graph;
 }
 
-// Fonction heuristique pour A* (distance directe entre deux planètes)
-float heuristic(Planet start, Planet goal) {
-    return calculate_distance(start.x, start.y, goal.x, goal.y);
+void add_edge(Graph *graph, long long source, long long destination, double distance) {
+    Node *new_node = (Node *)malloc(sizeof(Node));
+    new_node->edge.destination = destination;
+    new_node->edge.distance = distance;
+    new_node->next = graph->adjacency_list[source];
+    graph->adjacency_list[source] = new_node;
 }
 
-// Fonction pour ajouter un nœud à une liste
-void add_to_list(Node **list, Node *node) {
-    node->next = *list;
-    *list = node;
+// Fonction pour lire le fichier et construire le graphe
+Graph* read_graph(const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (!file) {
+        perror("Erreur d'ouverture du fichier");
+        exit(EXIT_FAILURE);
+    }
+
+    Graph *graph = create_graph();
+    char line[256];
+    while (fgets(line, sizeof(line), file)) {
+        long long source, destination;
+        double distance;
+        sscanf(line, "%lld %lld %lf", &source, &destination, &distance);
+        add_edge(graph, source, destination, distance);
+    }
+
+    fclose(file);
+    return graph;
 }
 
-// Fonction pour trouver un chemin avec A*
-Node *a_star(Planet *planets, Trip *trips, int num_trips, int start_id, int goal_id) {
-    Node *open_list = NULL;
-    Node *closed_list = NULL;
+// Fonction pathfinding avec Dikjstra pour trouver le chemin le plus court
+void dikjstra(Graph *graph, long long start, long long end) {
+    double distances[MAX_PLANETS];
+    long long previous[MAX_PLANETS];
+    int visited[MAX_PLANETS] = {0};
 
-    // Ajouter la planète de départ à l'open list
-    Node *start_node = malloc(sizeof(Node));
-    start_node->planet_id = start_id;
-    start_node->g_cost = 0;
-    start_node->h_cost = heuristic(planets[start_id], planets[goal_id]);
-    start_node->f_cost = start_node->g_cost + start_node->h_cost;
-    start_node->parent = NULL;
-    start_node->next = NULL;
-    add_to_list(&open_list, start_node);
+    for (int i = 0; i < MAX_PLANETS; i++) {
+        distances[i] = INFINITY;
+        previous[i] = -1;
+    }
 
-    while (open_list != NULL) {
-        // Trouver le nœud avec le plus petit f_cost dans l'open list
-        Node *current = open_list;
-        Node *prev = NULL, *min_prev = NULL;
-        Node *min_node = current;
-        float min_f_cost = current->f_cost;
+    distances[start] = 0.0;
 
-        while (current != NULL) {
-            if (current->f_cost < min_f_cost) {
-                min_f_cost = current->f_cost;
-                min_node = current;
-                min_prev = prev;
+    for (int count = 0; count < MAX_PLANETS; count++) {
+        // Trouver la planète non visitée avec la distance minimale
+        long long current = -1;
+        double min_distance = INFINITY;
+        for (int i = 0; i < MAX_PLANETS; i++) {
+            if (!visited[i] && distances[i] < min_distance) {
+                current = i;
+                min_distance = distances[i];
             }
-            prev = current;
-            current = current->next;
         }
 
-        // Si la planète courante est la destination, retourner le chemin
-        if (min_node->planet_id == goal_id) {
-            return min_node;
-        }
+        if (current == -1) break; // Aucun noeud accessible
+        if (current == end) break; // Chemin trouvé
 
-        // Retirer le nœud courant de l'open list et l'ajouter à la closed list
-        if (min_prev) {
-            min_prev->next = min_node->next;
-        } else {
-            open_list = min_node->next;
-        }
-        add_to_list(&closed_list, min_node);
+        visited[current] = 1;
 
-        // Examiner tous les voisins de la planète courante
-        for (int i = 0; i < num_trips; i++) {
-            if (trips[i].planet_id == min_node->planet_id) {
-                int neighbor_id = trips[i].destination_planet_id;
-
-                // Vérifier si le voisin est déjà dans la closed list
-                Node *closed = closed_list;
-                int skip = 0;
-                while (closed != NULL) {
-                    if (closed->planet_id == neighbor_id) {
-                        skip = 1;
-                        break;
-                    }
-                    closed = closed->next;
-                }
-                if (skip) continue;
-
-                // Calculer les coûts
-                float g_cost = min_node->g_cost + trips[i].distance;
-                float h_cost = heuristic(planets[neighbor_id], planets[goal_id]);
-                float f_cost = g_cost + h_cost;
-
-                // Vérifier si le voisin est déjà dans l'open list
-                Node *open = open_list;
-                while (open != NULL) {
-                    if (open->planet_id == neighbor_id && f_cost >= open->f_cost) {
-                        skip = 1;
-                        break;
-                    }
-                    open = open->next;
-                }
-                if (skip) continue;
-
-                // Ajouter le voisin à l'open list
-                Node *neighbor = malloc(sizeof(Node));
-                neighbor->planet_id = neighbor_id;
-                neighbor->g_cost = g_cost;
-                neighbor->h_cost = h_cost;
-                neighbor->f_cost = f_cost;
-                neighbor->parent = min_node;
-                neighbor->next = NULL;
-                add_to_list(&open_list, neighbor);
+        // Mettre à jour les distances des voisins
+        Node *neighbor = graph->adjacency_list[current];
+        while (neighbor) {
+            long long dest = neighbor->edge.destination;
+            double weight = neighbor->edge.distance;
+            if (!visited[dest] && distances[current] + weight < distances[dest]) {
+                distances[dest] = distances[current] + weight;
+                previous[dest] = current;
             }
+            neighbor = neighbor->next;
         }
     }
 
-    return NULL; // Aucun chemin trouvé
-}
-
-// Fonction pour afficher le chemin
-void print_path(Node *node) {
-    if (node == NULL) return;
-    print_path(node->parent);
-    printf("Planete ID %d -> ", node->planet_id);
-}
-
-// Exemple principal
-int main() {
-    // Initialisation des données
-    Planet planets[] = {
-        {0, 0, 2},
-        {1, 2, 2},
-        {2, 4, 1},
-        {3, 5, 1}
-    };
-
-    Trip trips[] = {
-        {0, 1, 1, 1},
-        {0, 3, 3, 1},
-        {1, 2, 2, 1},
-        {1, 3, 1, 1},
-        {2, 1, 5, 1},
-        {3, 2, 4, 1}
-    };
-
-    Node *path = a_star(planets, trips, 6, 2, 3); // Correction du nombre de trajets
-
-    if (path) {
-        printf("Chemin trouve : ");
-        print_path(path);
-        printf("Arrivee.\n");
+    // Reconstruire le chemin
+    if (distances[end] == INFINITY) {
+        printf("Aucun chemin disponible entre %lld et %lld\n", start, end);
     } else {
-        printf("Aucun chemin trouve.\n");
+        printf("Distance minimale : %.2lf\n", distances[end]);
+        printf("Chemin : ");
+        long long path[MAX_PLANETS];
+        int path_length = 0;
+        for (long long at = end; at != -1; at = previous[at]) {
+            path[path_length++] = at;
+        }
+        for (int i = path_length - 1; i >= 0; i--) {
+            printf("%lld%s", path[i], (i == 0) ? "\n" : " -> ");
+        }
     }
+}
+
+int main() {
+    const char *filename = "graph.txt";
+    Graph *graph = read_graph(filename);
+
+    long long start, end;
+    printf("Entrez la planete de depart : ");
+    scanf("%lld", &start);
+    printf("Entrez la planete d'arrivee : ");
+    scanf("%lld", &end);
+
+    dikjstra(graph, start, end);
 
     return 0;
 }
