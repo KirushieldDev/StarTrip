@@ -1,240 +1,139 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <string.h>
 #include <limits.h>
 
-#define MAX_VERTICES 500000
-#define INFINITY INT_MAX
+#define INFINITY LLONG_MAX
+#define MAX_PLANETS 6000
+#define MAX_TRIPS 128000
 
 typedef struct {
-    int id;
-    double x;
-    double y;
-} Planet;
-
-typedef struct {
-    int target;
-    double weight;
+    long long destination;
+    double distance;
 } Edge;
 
-typedef struct {
-    int id;
-    double cost;
-    double heuristic;
-    int predecessor;
+typedef struct Node {
+    Edge edge;
+    struct Node *next;
 } Node;
 
 typedef struct {
-    Node* nodes[MAX_VERTICES];
-    int size;
-} PriorityQueue;
+    Node *adjacency_list[MAX_PLANETS];
+} Graph;
 
-Planet planets[MAX_VERTICES];
-Edge adjacencyList[MAX_VERTICES][MAX_VERTICES];
-int adjacencyListSize[MAX_VERTICES];
-int numPlanets = 0;
+// File de priorité pour le Dijkstra
+typedef struct {
+    long long planet;
+    double distance;
+} PriorityQueueNode;
 
-// Function to calculate the heuristic (Euclidean distance)
-double heuristic(int start, int goal) {
-    return sqrt(pow(planets[goal].x - planets[start].x, 2) + pow(planets[goal].y - planets[start].y, 2));
-}
-
-// Function to swap two nodes
-void swap(Node* a, Node* b) {
-    Node temp = *a;
-    *a = *b;
-    *b = temp;
-}
-
-// Function to heapify the priority queue
-void heapify(PriorityQueue* pq, int idx) {
-    int smallest = idx;
-    int left = 2 * idx + 1;
-    int right = 2 * idx + 2;
-
-    if (left < pq->size && pq->nodes[left]->cost + pq->nodes[left]->heuristic < pq->nodes[smallest]->cost + pq->nodes[smallest]->heuristic) {
-        smallest = left;
+Graph* create_graph() {
+    Graph *graph = (Graph *)malloc(sizeof(Graph));
+    for (int i = 0; i < MAX_PLANETS; i++) {
+        graph->adjacency_list[i] = NULL;
     }
-
-    if (right < pq->size && pq->nodes[right]->cost + pq->nodes[right]->heuristic < pq->nodes[smallest]->cost + pq->nodes[smallest]->heuristic) {
-        smallest = right;
-    }
-
-    if (smallest != idx) {
-        swap(pq->nodes[idx], pq->nodes[smallest]);
-        heapify(pq, smallest);
-    }
+    return graph;
 }
 
-// Function to extract the minimum element from the priority queue
-Node* extractMin(PriorityQueue* pq) {
-    if (pq->size == 0) {
-        return NULL;
-    }
-
-    Node* minNode = pq->nodes[0];
-    pq->nodes[0] = pq->nodes[pq->size - 1];
-    pq->size--;
-    heapify(pq, 0);
-
-    return minNode;
+void add_edge(Graph *graph, long long source, long long destination, double distance) {
+    Node *new_node = (Node *)malloc(sizeof(Node));
+    new_node->edge.destination = destination;
+    new_node->edge.distance = distance;
+    new_node->next = graph->adjacency_list[source];
+    graph->adjacency_list[source] = new_node;
 }
 
-// Function to insert a node into the priority queue
-void insert(PriorityQueue* pq, Node* node) {
-    pq->nodes[pq->size] = node;
-    pq->size++;
-
-    int i = pq->size - 1;
-    while (i != 0 && pq->nodes[(i - 1) / 2]->cost + pq->nodes[(i - 1) / 2]->heuristic > pq->nodes[i]->cost + pq->nodes[i]->heuristic) {
-        swap(pq->nodes[i], pq->nodes[(i - 1) / 2]);
-        i = (i - 1) / 2;
-    }
-}
-
-// Function to check if the priority queue is empty
-int isEmpty(PriorityQueue* pq) {
-    return pq->size == 0;
-}
-
-// Function to find the index of a planet by its ID
-int findPlanetIndex(int id) {
-    for (int i = 0; i < numPlanets; i++) {
-        if (planets[i].id == id) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-// Function to load the graph from the file
-void loadGraph(const char* filename) {
-    FILE* file = fopen(filename, "r");
-    if (file == NULL) {
-        perror("Unable to open file");
+// Fonction pour lire le fichier et construire le graphe
+Graph* read_graph(const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (!file) {
+        perror("Erreur d'ouverture du fichier");
         exit(EXIT_FAILURE);
     }
 
-    int sourceId, destId;
-    double distance;
-    while (fscanf(file, "%d %d %lf", &sourceId, &destId, &distance) == 3) {
-        int sourceIndex = findPlanetIndex(sourceId);
-        int destIndex = findPlanetIndex(destId);
-
-        if (sourceIndex == -1) {
-            planets[numPlanets].id = sourceId;
-            sourceIndex = numPlanets;
-            numPlanets++;
-        }
-
-        if (destIndex == -1) {
-            planets[numPlanets].id = destId;
-            destIndex = numPlanets;
-            numPlanets++;
-        }
-
-        adjacencyList[sourceIndex][adjacencyListSize[sourceIndex]].target = destIndex;
-        adjacencyList[sourceIndex][adjacencyListSize[sourceIndex]].weight = distance;
-        adjacencyListSize[sourceIndex]++;
+    Graph *graph = create_graph();
+    char line[256];
+    while (fgets(line, sizeof(line), file)) {
+        long long source, destination;
+        double distance;
+        sscanf(line, "%lld %lld %lf", &source, &destination, &distance);
+        add_edge(graph, source, destination, distance);
     }
 
     fclose(file);
+    return graph;
 }
 
-// Function to reconstruct the path from the predecessors
-void reconstructPath(int* predecessors, int start, int goal, int* path, int* pathSize) {
-    int current = goal;
-    int index = 0;
+// Fonction pathfinding avec Dikjstra pour trouver le chemin le plus court
+void dikjstra(Graph *graph, long long start, long long end) {
+    double distances[MAX_PLANETS];
+    long long previous[MAX_PLANETS];
+    int visited[MAX_PLANETS] = {0};
 
-    while (current != -1) {
-        path[index++] = current;
-        current = predecessors[current];
-    }
-
-    *pathSize = index;
-    for (int i = 0; i < index / 2; i++) {
-        int temp = path[i];
-        path[i] = path[index - i - 1];
-        path[index - i - 1] = temp;
-    }
-}
-
-// Function to apply the A* algorithm
-void aStar(int start, int goal) {
-    double distances[MAX_VERTICES];
-    int predecessors[MAX_VERTICES];
-    PriorityQueue pq;
-    pq.size = 0;
-
-    for (int i = 0; i < numPlanets; i++) {
+    for (int i = 0; i < MAX_PLANETS; i++) {
         distances[i] = INFINITY;
-        predecessors[i] = -1;
+        previous[i] = -1;
     }
 
-    distances[start] = 0;
-    Node* startNode = (Node*)malloc(sizeof(Node));
-    startNode->id = start;
-    startNode->cost = 0;
-    startNode->heuristic = heuristic(start, goal);
-    startNode->predecessor = -1;
-    insert(&pq, startNode);
+    distances[start] = 0.0;
 
-    while (!isEmpty(&pq)) {
-        Node* current = extractMin(&pq);
-
-        if (current->id == goal) {
-            int path[MAX_VERTICES];
-            int pathSize;
-            reconstructPath(predecessors, start, goal, path, &pathSize);
-
-            printf("Shortest path: ");
-            for (int i = 0; i < pathSize; i++) {
-                printf("%d ", planets[path[i]].id);
-            }
-            printf("\nTotal cost: %.2f\n", distances[goal]);
-            free(current);
-            return;
-        }
-
-        for (int i = 0; i < adjacencyListSize[current->id]; i++) {
-            Edge edge = adjacencyList[current->id][i];
-            double newDist = distances[current->id] + edge.weight;
-
-            if (newDist < distances[edge.target]) {
-                distances[edge.target] = newDist;
-                predecessors[edge.target] = current->id;
-
-                Node* neighbor = (Node*)malloc(sizeof(Node));
-                neighbor->id = edge.target;
-                neighbor->cost = newDist;
-                neighbor->heuristic = heuristic(edge.target, goal);
-                neighbor->predecessor = current->id;
-                insert(&pq, neighbor);
+    for (int count = 0; count < MAX_PLANETS; count++) {
+        // Trouver la planète non visitée avec la distance minimale
+        long long current = -1;
+        double min_distance = INFINITY;
+        for (int i = 0; i < MAX_PLANETS; i++) {
+            if (!visited[i] && distances[i] < min_distance) {
+                current = i;
+                min_distance = distances[i];
             }
         }
 
-        free(current);
+        if (current == -1) break; // Aucun noeud accessible
+        if (current == end) break; // Chemin trouvé
+
+        visited[current] = 1;
+
+        // Mettre à jour les distances des voisins
+        Node *neighbor = graph->adjacency_list[current];
+        while (neighbor) {
+            long long dest = neighbor->edge.destination;
+            double weight = neighbor->edge.distance;
+            if (!visited[dest] && distances[current] + weight < distances[dest]) {
+                distances[dest] = distances[current] + weight;
+                previous[dest] = current;
+            }
+            neighbor = neighbor->next;
+        }
     }
 
-    printf("No path found.\n");
+    // Reconstruire le chemin
+    if (distances[end] == INFINITY) {
+        printf("Aucun chemin disponible entre %lld et %lld\n", start, end);
+    } else {
+        printf("Distance minimale : %.2lf\n", distances[end]);
+        printf("Chemin : ");
+        long long path[MAX_PLANETS];
+        int path_length = 0;
+        for (long long at = end; at != -1; at = previous[at]) {
+            path[path_length++] = at;
+        }
+        for (int i = path_length - 1; i >= 0; i--) {
+            printf("%lld%s", path[i], (i == 0) ? "\n" : " -> ");
+        }
+    }
 }
 
 int main() {
-    loadGraph("../graph.txt");
+    const char *filename = "graph.txt";
+    Graph *graph = read_graph(filename);
 
-    int startPlanetId = 1;
-    int goalPlanetId = 3;
+    long long start, end;
+    printf("Entrez la planete de depart : ");
+    scanf("%lld", &start);
+    printf("Entrez la planete d'arrivee : ");
+    scanf("%lld", &end);
 
-    int startIndex = findPlanetIndex(startPlanetId);
-    int goalIndex = findPlanetIndex(goalPlanetId);
+    dikjstra(graph, start, end);
 
-    if (startIndex == -1 || goalIndex == -1) {
-        printf("Start or goal planet not found.\n");
-        return EXIT_FAILURE;
-    }
-
-    aStar(startIndex, goalIndex);
-
-    return EXIT_SUCCESS;
+    return 0;
 }
