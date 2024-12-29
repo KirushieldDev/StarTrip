@@ -19,7 +19,33 @@ if ($departurePlanetId && $arrivalPlanetId) {
         die("One or both planets not found.");
     }
 } else {
-    die("Invalid planet IDs.");
+    header("Location: index.php" );
+}
+
+// Fetch all planets
+$query = $cnx->prepare("SELECT * FROM planet");
+$query->execute();
+$planets = $query->fetchAll(PDO::FETCH_ASSOC);
+
+$maxX = $maxY = PHP_INT_MIN;
+$minX = $minY = PHP_INT_MAX;
+
+$planetData = [];
+
+foreach ($planets as $planet) {
+    [$x, $y] = Planet::calculatePosition($planet['x'], $planet['sub_grid_x'], $planet['y'], $planet['sub_grid_y']);
+    $planetData[] = [
+        'id' => $planet['id'],
+        'name' => htmlspecialchars($planet['name']),
+        'coordinates' => [$x, $y],
+        'diameter' => $planet['diameter'],
+        'region' => $planet['region'],
+        'imageHtml' => Planet::getHtmlImage($planet['id'])
+    ];
+    $maxX = max($maxX, $x);
+    $maxY = max($maxY, $y);
+    $minX = min($minX, $x);
+    $minY = min($minY, $y);
 }
 ?>
 <!DOCTYPE html>
@@ -28,14 +54,7 @@ if ($departurePlanetId && $arrivalPlanetId) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interplanetary Map</title>
-    <style>
-        #map {
-            height: 600px;
-            width: 100%;
-            margin: 0 auto;
-            border: 2px solid #fff;
-        }
-    </style>
+    <link rel="stylesheet" href="../css/map.css">
 </head>
 <body class="bg-dark text-light">
 
@@ -57,13 +76,22 @@ if ($departurePlanetId && $arrivalPlanetId) {
 <script>
     const mapData = {
         departure: {
+            id: <?= $departure['id'] ?>,
             name: "<?= htmlspecialchars($departure['name']) ?>",
-            coordinates: [<?= $departureX ?>, <?= $departureY ?>]
+            coordinates: [<?= $departureX ?>, <?= $departureY ?>],
+            diameter: <?= $departure['diameter'] ?>,
+            region: "<?= htmlspecialchars($departure['region']) ?>",
+            imageHtml: `<?= Planet::getHtmlImage($departure['id']) ?>`
         },
         arrival: {
+            id: <?= $arrival['id'] ?>,
             name: "<?= htmlspecialchars($arrival['name']) ?>",
-            coordinates: [<?= $arrivalX ?>, <?= $arrivalY ?>]
-        }
+            coordinates: [<?= $arrivalX ?>, <?= $arrivalY ?>],
+            diameter: <?= $arrival['diameter'] ?>,
+            region: "<?= htmlspecialchars($arrival['region']) ?>",
+            imageHtml: `<?= Planet::getHtmlImage($arrival['id']) ?>`
+        },
+        allPlanets: <?= json_encode($planetData) ?>
     };
 </script>
 <script src="../js/map.js"></script>

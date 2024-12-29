@@ -36,9 +36,21 @@ require_once '../configs/config.php';
                 <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
                 <button class="btn btn-outline-success" type="submit">Search</button>
             </form>
-            <button id="fontToggleBtn" class="btn btn-light ms-2 btn-lg">
+            <button id="fontToggleBtn" class="btn ms-2 btn-lg">
                 <i class="bi bi-file-earmark-font"></i>
             </button>
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link btn btn-lg" href="../src/cart.php">
+                        <i class="bi bi-cart-fill"></i>
+                        <?php
+                        if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0) {
+                            echo '<span class="badge bg-danger">' . count($_SESSION['cart']) . '</span>';
+                        }
+                        ?>
+                    </a>
+                </li>
+            </ul>
         </div>
     </div>
 </nav>

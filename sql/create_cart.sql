@@ -1,0 +1,18 @@
+CREATE TABLE `cart`
+(
+    `id`                  int(11) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `id_user`             int(11) UNSIGNED ZEROFILL NOT NULL,
+    `departure_planet_id` int(11) UNSIGNED ZEROFILL NOT NULL,
+    `arrival_planet_id`   int(11) UNSIGNED ZEROFILL NOT NULL,
+    `ship_id`             int(11) UNSIGNED ZEROFILL NOT NULL,
+    `created_at`          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `cart_departure_planet` (`departure_planet_id`),
+    KEY `cart_arrival_planet` (`arrival_planet_id`),
+    KEY `cart_ship` (`ship_id`),
+    CONSTRAINT `cart_departure_planet` FOREIGN KEY (`departure_planet_id`) REFERENCES `planet` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `cart_arrival_planet` FOREIGN KEY (`arrival_planet_id`) REFERENCES `planet` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `cart_ship` FOREIGN KEY (`ship_id`) REFERENCES `ship` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_general_ci;
