@@ -1,0 +1,36 @@
+#map {
+    height: 600px;
+    width: 100%;
+    margin: 0 auto;
+    border: 2px solid #fff;
+}
+
+.planet-img {
+    width: 50px;
+    height: 50px;
+    border-radius: 5px;
+    margin-top: 3px;
+}
+
+.info.legend {
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    line-height: 18px;
+    color: #333;
+}
+
+.info.legend h4 {
+    margin: 0 0 10px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.info.legend i {
+    width: 18px;
+    height: 18px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.8;
+}
