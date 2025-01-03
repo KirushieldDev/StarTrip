@@ -13,12 +13,14 @@ try {
 }
 ?>
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search for a Trip</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../css/home.css">
 </head>
 <body class="bg-dark">
@@ -44,8 +46,8 @@ try {
                     </label>
                     <div class="input-group">
                         <input type="text" id="departurePlanet" name="departurePlanet"
-                               class="form-control" placeholder="Search for a planet"
-                               required autocomplete="off" data-bs-toggle="dropdown">
+                               class="form-control" placeholder="Type a planet name"
+                               required autocomplete="off">
                         <ul id="departureSuggestions" class="dropdown-menu w-100"></ul>
                     </div>
                 </div>
@@ -57,10 +59,74 @@ try {
                     </label>
                     <div class="input-group">
                         <input type="text" id="arrivalPlanet" name="arrivalPlanet"
-                               class="form-control" placeholder="Search for a planet"
-                               required autocomplete="off" data-bs-toggle="dropdown">
+                               class="form-control" placeholder="Type a planet name"
+                               required autocomplete="off">
                         <ul id="arrivalSuggestions" class="dropdown-menu w-100"></ul>
                     </div>
+                </div>
+
+                <!-- Day of the Week -->
+                <div class="col-md-6">
+                    <label for="dayOfWeek" class="form-label fw-semibold">
+                        <i class="bi bi-calendar3 text-info"></i> Day of the Week
+                    </label>
+                    <select id="dayOfWeek" name="dayOfWeek" class="form-select">
+                        <option value="no-preference" selected>No Preference</option>
+                        <option value="Primeday">Primeday</option>
+                        <option value="Centaxday">Centaxday</option>
+                        <option value="Taungsday">Taungsday</option>
+                        <option value="Zhellday">Zhellday</option>
+                        <option value="Benduday">Benduday</option>
+                    </select>
+                </div>
+
+                <!-- Ship -->
+                <div class="col-md-6">
+                    <label for="ship" class="form-label fw-semibold">
+                        <i class="bi bi-rocket-fill text-warning"></i> Ship
+                    </label>
+                    <select id="ship" name="ship" class="form-select">
+
+                        <?php
+                        try {
+                            $stmt = $cnx->prepare("SELECT name FROM ship");
+                            $stmt->execute();
+                            $ships = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                        } catch (Exception $e) {
+                            echo "Error: " . $e->getMessage();
+                        }
+                        ?>
+                        <option value="no-preference" selected>No Preference</option>
+                        <?php foreach ($ships as $ship): ?>
+                            <option value="<?= htmlspecialchars($ship['name']) ?>"><?= htmlspecialchars($ship['name']) ?></option>
+                        <?php endforeach; ?>
+
+                    </select>
+                </div>
+
+                <!-- Planet Alignment -->
+                <div class="col-md-6">
+                    <label for="planetAlignment" class="form-label fw-semibold">
+                        <i class="bi bi-flag-fill text-primary"></i> Planet Alignment
+                    </label>
+                    <select id="planetAlignment" name="planetAlignment" class="form-select">
+                        <option value="no-preference" selected>No Preference</option>
+                        <option value="Republic">Republic</option>
+                        <option value="Empire">Empire</option>
+                        <option value="Neutral">Neutral</option>
+                    </select>
+                </div>
+
+                <!-- Travel Type -->
+                <div class="col-md-6">
+                    <label for="travelType" class="form-label fw-semibold">
+                        <i class="bi bi-arrow-right-circle-fill text-success"></i> Travel Type
+                    </label>
+                    <select id="travelType" name="travelType" class="form-select">
+                        <option value="direct" selected>Direct Flight</option>
+                        <option value="nearest-neighbor">Nearest Neighbor</option>
+                        <option value="shortest-path">Shortest Path</option>
+                    </select>
                 </div>
 
                 <!-- Submit Button -->
@@ -79,9 +145,9 @@ try {
 </footer>
 
 <script>
-    const planetNames = <?php echo json_encode($planets); ?>.map(planet => planet.name);
+    const planetNames = <?php echo json_encode(array_column($planets, 'name')); ?>;
 </script>
-
 <script src="../js/autocomplete.js"></script>
+
 </body>
 </html>
