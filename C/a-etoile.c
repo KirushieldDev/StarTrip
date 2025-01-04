@@ -130,7 +130,7 @@ void dikjstra(Graph *graph, long long start, long long end) {
         }
 
         write_json_to_file("output.json", reversed_path, path_length, distances[end]);
-        printf("Résultat écrit dans le fichier output.json\n");
+        printf("Resultat ecrit dans le fichier output.json\n");
     }
 }
 
