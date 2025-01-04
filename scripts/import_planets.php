@@ -8,7 +8,7 @@
 require_once '../configs/config.php';
 require_once '../class/planet.php';
 global $cnx;
-set_time_limit(300);
+set_time_limit(30000);
 ini_set('memory_limit', '256M');
 
 Planet::$planetsList = [];
