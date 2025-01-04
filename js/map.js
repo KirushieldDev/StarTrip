@@ -103,7 +103,8 @@ const arrivalCircle = L.circle(arrivalCoordinates, {
 departureCircle.openPopup();
 arrivalCircle.openPopup();
 
-L.polyline([departureCoordinates, arrivalCoordinates], {
+// Draw the polyline for the path
+L.polyline(mapData.pathCoordinates, {
     color: 'white',
     weight: 4
 }).addTo(map);
@@ -130,10 +131,10 @@ legend.onAdd = function () {
         legendContent += `
             <div style="margin: 5px 0; display: flex; align-items: center;">
                 <i style="
-                    background: black; 
-                    width: ${size}px; 
-                    height: ${size}px; 
-                    border-radius: 50%; 
+                    background: black;
+                    width: ${size}px;
+                    height: ${size}px;
+                    border-radius: 50%;
                     display: inline-block;
                     margin-right: 8px;
                 "></i>
