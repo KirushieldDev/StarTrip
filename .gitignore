@@ -5,3 +5,4 @@ graph.txt
 out/
 *.exe
 *.iml
+output.json

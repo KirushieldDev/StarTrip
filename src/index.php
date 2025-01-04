@@ -40,7 +40,14 @@ try {
             <i class="bi bi-rocket-takeoff-fill text-primary"></i> Search for a Trip
             <i class="bi bi-rocket-takeoff-fill text-primary"></i>
         </h1>
-        <p class="text-light">Find your next intergalactic journey</p>
+        <?php if(isset($_SESSION['user'])): ?>
+            <p class="text-light">
+                Hello <span class="fw-bold"><?= htmlspecialchars($_SESSION['user']['username']) ?></span>, 
+                find your next intergalactic journey
+            </p>
+        <?php else: ?>
+            <p class="text-light">Find your next intergalactic journey</p>
+        <?php endif; ?>
     </div>
 
     <!-- Form Section -->
@@ -98,8 +105,8 @@ try {
                     <label for="legion" class="form-label fw-semibold">
                         <i class="bi bi-shield-fill text-info"></i> Legion
                     </label>
-                    <select id="legion" name="legion" class="form-select" required>
-                        <option value="">Select a Legion</option>
+                    <select id="legion" name="legion" class="form-select">
+                        <option value="Empty">Not important</option>
                         <?php foreach ($legions as $legion): ?>
                             <option value="<?php echo htmlspecialchars($legion); ?>">
                                 <?php echo htmlspecialchars($legion); ?>

@@ -1,4 +1,4 @@
-CREATE TABLE `logs` (
+CREATE TABLE IF NOT EXISTS `logs` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `description` text NOT NULL,
     `date` datetime NOT NULL,

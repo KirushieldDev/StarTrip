@@ -1,4 +1,4 @@
-CREATE TABLE `trip` (
+CREATE TABLE IF NOT EXISTS `trip` (
     `id` int(11) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `planet_id` int(11) UNSIGNED ZEROFILL NOT NULL,
     `day_of_week` enum('Primeday','Centaxday','Taungsday','Zhellday','Benduday') NOT NULL,
