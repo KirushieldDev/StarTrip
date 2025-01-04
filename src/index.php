@@ -11,7 +11,17 @@ try {
 } catch (Exception $e) {
     echo "Error : " . $e->getMessage();
 }
+
+// Get the unique legions from the ship table
+try {
+    $stmt = $cnx->prepare("SELECT DISTINCT camp FROM ship ORDER BY camp");
+    $stmt->execute();
+    $legions = $stmt->fetchAll(PDO::FETCH_COLUMN);
+} catch (Exception $e) {
+    echo "Error : " . $e->getMessage();
+}
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -44,8 +54,8 @@ try {
                     </label>
                     <div class="input-group">
                         <input type="text" id="departurePlanet" name="departurePlanet"
-                               class="form-control" placeholder="Search for a planet"
-                               required autocomplete="off" data-bs-toggle="dropdown">
+                               class="form-control" placeholder="Type a planet name"
+                               required autocomplete="off">
                         <ul id="departureSuggestions" class="dropdown-menu w-100"></ul>
                     </div>
                 </div>
@@ -57,10 +67,45 @@ try {
                     </label>
                     <div class="input-group">
                         <input type="text" id="arrivalPlanet" name="arrivalPlanet"
-                               class="form-control" placeholder="Search for a planet"
-                               required autocomplete="off" data-bs-toggle="dropdown">
+                               class="form-control" placeholder="Type a planet name"
+                               required autocomplete="off">
                         <ul id="arrivalSuggestions" class="dropdown-menu w-100"></ul>
                     </div>
+                </div>
+
+                <!-- Time Selection -->
+                <div class="col-md-6">
+                    <label for="timePreference" class="form-label fw-semibold">
+                        <i class="bi bi-clock-fill text-warning"></i> Time Preference
+                    </label>
+                    <select id="timePreference" name="timePreference" class="form-select mb-2">
+                        <option value="departure">Departure Time</option>
+                        <option value="arrival">Arrival Time</option>
+                    </select>
+                    
+                    <div class="input-group">
+                        <input type="datetime-local" 
+                               id="selectedTime" 
+                               name="selectedTime" 
+                               class="form-control"
+                               min="<?php echo date('Y-m-d\TH:i'); ?>"
+                               required>
+                    </div>
+                </div>
+
+                <!-- Legion Selection -->
+                <div class="col-md-6">
+                    <label for="legion" class="form-label fw-semibold">
+                        <i class="bi bi-shield-fill text-info"></i> Legion
+                    </label>
+                    <select id="legion" name="legion" class="form-select" required>
+                        <option value="">Select a Legion</option>
+                        <?php foreach ($legions as $legion): ?>
+                            <option value="<?php echo htmlspecialchars($legion); ?>">
+                                <?php echo htmlspecialchars($legion); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
 
                 <!-- Submit Button -->
@@ -79,9 +124,9 @@ try {
 </footer>
 
 <script>
-    const planetNames = <?php echo json_encode($planets); ?>.map(planet => planet.name);
+    const planetNames = <?php echo json_encode(array_column($planets, 'name')); ?>;
 </script>
-
 <script src="../js/autocomplete.js"></script>
+
 </body>
 </html>

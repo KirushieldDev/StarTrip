@@ -39,7 +39,7 @@ try {
         $ships = $ship_stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if ($selectedShipId) {
-            $ship_stmt = $cnx->prepare("SELECT name, speed_kmh FROM ship WHERE id = :id");
+            $ship_stmt = $cnx->prepare("SELECT * FROM ship WHERE id = :id");
             $ship_stmt->bindParam(':id', $selectedShipId);
             $ship_stmt->execute();
             $selectedShip = $ship_stmt->fetch(PDO::FETCH_ASSOC);
@@ -47,8 +47,10 @@ try {
             if ($selectedShip) {
                 $speed_kmh = $selectedShip['speed_kmh'];
                 $duration_hours = $distance_km / $speed_kmh;
-                $hours = floor($duration_hours);
-                $minutes = round(($duration_hours - $hours) * 60);
+
+                $days = floor($duration_hours / 24);
+                $hours = floor($duration_hours % 24);
+                $minutes = round(($duration_hours - floor($duration_hours)) * 60);
             }
         }
     }
@@ -173,8 +175,59 @@ try {
                 <div class="alert alert-info text-center mb-3">
                     <h4><?= htmlspecialchars($selectedShip['name']) ?></h4>
                     <p class="fs-5">
-                        Travel Time: <?= $hours ?> hours <?= $minutes ?> minutes
+                        Travel Time:
+                        <?php if ($days > 0): ?>
+                            <?= $days ?> days
+                        <?php endif; ?>
+                        <?php if ($hours > 0): ?>
+                            <?= $hours ?> hours
+                        <?php endif; ?>
+                        <?= $minutes ?> minutes
                     </p>
+
+                    <?php
+                    // Speed of light in km/h
+                    $lightSpeed = 1.08e9;
+                    $baseCost = ($distance_km / 1e9) * 100;
+                    $speedDifferencePercent = (($selectedShip['speed_kmh'] - $lightSpeed) / $lightSpeed) * 100;
+
+                    $finalPrice = $baseCost;
+                    if ($speedDifferencePercent > 0) {
+                        $finalPrice += ($baseCost * $speedDifferencePercent / 100);
+                    }
+                    ?>
+
+                    <div class="ticket-details mt-4">
+                        <div class="card bg-dark text-light">
+                            <div class="card-header">
+                                <h5>Ticket Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>From:</strong> <?= htmlspecialchars($departurePlanetDetails['name']) ?></p>
+                                        <p><strong>To:</strong> <?= htmlspecialchars($arrivalPlanetDetails['name']) ?></p>
+                                        <p><strong>Ship:</strong> <?= htmlspecialchars($selectedShip['name']) ?></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Distance:</strong> <?= number_format($distance_km, 0) ?> km</p>
+                                        <p><strong>Price:</strong> <?= number_format($finalPrice, 2) ?> Galactic Credits</p>
+                                    </div>
+                                </div>
+
+                                <form action="../scripts/add_to_cart.php" method="POST" class="mt-3">
+                                    <input type="hidden" name="departure_planet_id" value="<?= $departurePlanetId ?>">
+                                    <input type="hidden" name="arrival_planet_id" value="<?= $arrivalPlanetId ?>">
+                                    <input type="hidden" name="ship_id" value="<?= $selectedShipId ?>">
+                                    <input type="hidden" name="price" value="<?= $finalPrice ?>">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-cart-plus"></i> Add to Cart
+                                        <small>(Will expire in 2 minutes)</small>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         <?php endif; ?>
