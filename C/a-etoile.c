@@ -139,27 +139,30 @@ void dikjstra(Graph *graph, long long start, long long end) {
     }
 }
 
-int main() {
-    const char *filename = "graph.txt";
-    Graph *graph = read_graph(filename);
-
-    if (!graph) {
-        write_json_to_file("output.json", 0, "Erreur lors de la lecture du fichier du graphe.", NULL, 0, 0.0);
+int main(int argc, char *argv[]) {
+    if (argc != 3) {
+        fprintf(stderr, "Usage : %s <planete_depart> <planete_arrivee>\n", argv[0]);
         return EXIT_FAILURE;
     }
 
-    long long start, end;
-    printf("Entrez la planete de depart : ");
-    scanf("%lld", &start);
+    long long start = atoll(argv[1]); // convertit les string en nombre
+    long long end = atoll(argv[2]);
+
     if (start < 1 || start > MAX_PLANETS) {
         write_json_to_file("output.json", 0, "Numéro de planète de départ invalide. Doit être entre 1 et 6000.", NULL, 0, 0.0);
         return EXIT_FAILURE;
     }
 
-    printf("Entrez la planete d'arrivee : ");
-    scanf("%lld", &end);
     if (end < 1 || end > MAX_PLANETS) {
         write_json_to_file("output.json", 0, "Numéro de planète d'arrivée invalide. Doit être entre 1 et 6000.", NULL, 0, 0.0);
+        return EXIT_FAILURE;
+    }
+
+    const char *filename = "graph.txt";
+    Graph *graph = read_graph(filename);
+
+    if (!graph) {
+        write_json_to_file("output.json", 0, "Erreur lors de la lecture du fichier du graphe.", NULL, 0, 0.0);
         return EXIT_FAILURE;
     }
 
