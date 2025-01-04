@@ -12,8 +12,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $departurePlanetId = $_POST['departurePlanetId'];
 $arrivalPlanetId = $_POST['arrivalPlanetId'];
+$legion = isset($_POST['legion']) ? $_POST['legion'] : 'Empty';
 $selectedShipId = $_POST['shipId'] ?? null;
-
 try {
     $stmt = $cnx->prepare("SELECT * FROM planet WHERE id = :id");
 
