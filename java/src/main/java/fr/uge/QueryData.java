@@ -1,3 +1,5 @@
+package fr.uge;
+
 import java.io.*;
 import java.sql.*;
 
@@ -44,6 +46,7 @@ public class QueryData {
 
                         double distance = Math.sqrt(Math.pow(destX - sourceX, 2) + Math.pow(destY - sourceY, 2)) * Math.pow(10, 9);
                         writer.printf("%s %s %.2f%n", sourcePlanet, destPlanet, distance);
+
                     }
                 }
             }
