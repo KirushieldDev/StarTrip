@@ -120,7 +120,7 @@ try {
 </div>
 
 <footer class="mt-5 text-center text-muted">
-    <p class="text-light"><i class="bi bi-star-fill text-warning"></i> Powered by ELANKEETHAN Kirushikesan <i class="bi bi-star-fill text-warning"></i></p>
+    <p class="text-light"><i class="bi bi-star-fill text-warning"></i> Powered by K.ELANKEETHAN, V.SANTOS, A.CHAMPAULT, S.COLO <i class="bi bi-star-fill text-warning"></i></p>
 </footer>
 
 <script>

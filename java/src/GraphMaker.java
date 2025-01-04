@@ -60,8 +60,7 @@ public class GraphMaker {
         }
 
         // Charger les arêtes (trips)
-        String tripQuery = "SELECT destination_planet_id, destination_planet_id, distance FROM trip " +
-                "JOIN planet ON trip.destination_planet_id = planet.id";
+        String tripQuery = "SELECT planet_id, destination_planet_id, distance FROM trip ";
         try (Statement tripStmt = connection.createStatement();
              ResultSet tripRs = tripStmt.executeQuery(tripQuery)) {
             while (tripRs.next()) {
