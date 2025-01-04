@@ -13,7 +13,7 @@ public class QueryData {
         }
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PrintWriter writer = new PrintWriter("graph.txt")) {
+             PrintWriter writer = new PrintWriter("../graph.txt")) {
 
             String query = "SELECT DISTINCT t.planet_id, t.destination_planet_id, " +
                     "(p1.x + p1.sub_grid_x) * 6 AS source_x, (p1.y + p1.sub_grid_y) * 6 AS source_y, " +
@@ -23,7 +23,6 @@ public class QueryData {
                     "JOIN planet p1 ON t.planet_id = p1.id " +
                     "JOIN planet p2 ON t.destination_planet_id = p2.id " +
                     "JOIN ship s ON s.id = t.ship_id";
-
 
             if (camp != null && !camp.equals("Empty") && !camp.isEmpty()) {
                 query += " WHERE s.camp = ?";
