@@ -21,12 +21,6 @@ typedef struct {
     Node *adjacency_list[MAX_PLANETS];
 } Graph;
 
-// File de priorité pour le Dijkstra
-typedef struct {
-    long long planet;
-    double distance;
-} PriorityQueueNode;
-
 Graph* create_graph() {
     Graph *graph = (Graph *)malloc(sizeof(Graph));
     for (int i = 0; i < MAX_PLANETS; i++) {
@@ -43,7 +37,6 @@ void add_edge(Graph *graph, long long source, long long destination, double dist
     graph->adjacency_list[source] = new_node;
 }
 
-// Fonction pour lire le fichier et construire le graphe
 Graph* read_graph(const char *filename) {
     FILE *file = fopen(filename, "r");
     if (!file) {
@@ -64,7 +57,25 @@ Graph* read_graph(const char *filename) {
     return graph;
 }
 
-// Fonction pathfinding avec Dikjstra pour trouver le chemin le plus court
+void write_json_to_file(const char *filename, long long *path, int path_length, double distance) {
+    FILE *file = fopen(filename, "w");
+    if (!file) {
+        perror("Erreur lors de l'ouverture du fichier JSON");
+        exit(EXIT_FAILURE);
+    }
+
+    fprintf(file, "{\n");
+    fprintf(file, "  \"distance\": %.2lf,\n", distance);
+    fprintf(file, "  \"path\": [");
+    for (int i = 0; i < path_length; i++) {
+        fprintf(file, "%lld%s", path[i], (i == path_length - 1) ? "" : ", ");
+    }
+    fprintf(file, "]\n");
+    fprintf(file, "}\n");
+
+    fclose(file);
+}
+
 void dikjstra(Graph *graph, long long start, long long end) {
     double distances[MAX_PLANETS];
     long long previous[MAX_PLANETS];
@@ -78,7 +89,6 @@ void dikjstra(Graph *graph, long long start, long long end) {
     distances[start] = 0.0;
 
     for (int count = 0; count < MAX_PLANETS; count++) {
-        // Trouver la planète non visitée avec la distance minimale
         long long current = -1;
         double min_distance = INFINITY;
         for (int i = 0; i < MAX_PLANETS; i++) {
@@ -88,12 +98,11 @@ void dikjstra(Graph *graph, long long start, long long end) {
             }
         }
 
-        if (current == -1) break; // Aucun noeud accessible
-        if (current == end) break; // Chemin trouvé
+        if (current == -1) break;
+        if (current == end) break;
 
         visited[current] = 1;
 
-        // Mettre à jour les distances des voisins
         Node *neighbor = graph->adjacency_list[current];
         while (neighbor) {
             long long dest = neighbor->edge.destination;
@@ -106,20 +115,22 @@ void dikjstra(Graph *graph, long long start, long long end) {
         }
     }
 
-    // Reconstruire le chemin
     if (distances[end] == INFINITY) {
         printf("Aucun chemin disponible entre %lld et %lld\n", start, end);
     } else {
-        printf("Distance minimale : %.2lf\n", distances[end]);
-        printf("Chemin : ");
         long long path[MAX_PLANETS];
         int path_length = 0;
         for (long long at = end; at != -1; at = previous[at]) {
             path[path_length++] = at;
         }
-        for (int i = path_length - 1; i >= 0; i--) {
-            printf("%lld%s", path[i], (i == 0) ? "\n" : " -> ");
+
+        long long reversed_path[MAX_PLANETS];
+        for (int i = 0; i < path_length; i++) {
+            reversed_path[i] = path[path_length - 1 - i];
         }
+
+        write_json_to_file("output.json", reversed_path, path_length, distances[end]);
+        printf("Resultat ecrit dans le fichier output.json\n");
     }
 }
 
