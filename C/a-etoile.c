@@ -40,8 +40,7 @@ void add_edge(Graph *graph, long long source, long long destination, double dist
 Graph* read_graph(const char *filename) {
     FILE *file = fopen(filename, "r");
     if (!file) {
-        perror("Erreur d'ouverture du fichier");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 
     Graph *graph = create_graph();
@@ -57,7 +56,7 @@ Graph* read_graph(const char *filename) {
     return graph;
 }
 
-void write_json_to_file(const char *filename, long long *path, int path_length, double distance) {
+void write_json_to_file(const char *filename, int success, const char *error_message, long long *path, int path_length, double distance) {
     FILE *file = fopen(filename, "w");
     if (!file) {
         perror("Erreur lors de l'ouverture du fichier JSON");
@@ -65,15 +64,22 @@ void write_json_to_file(const char *filename, long long *path, int path_length, 
     }
 
     fprintf(file, "{\n");
-    fprintf(file, "  \"distance\": %.2lf,\n", distance);
-    fprintf(file, "  \"path\": [");
-    for (int i = 0; i < path_length; i++) {
-        fprintf(file, "%lld%s", path[i], (i == path_length - 1) ? "" : ", ");
-    }
-    fprintf(file, "]\n");
-    fprintf(file, "}\n");
+    fprintf(file, "  \"success\": %s,\n", success ? "true" : "false");
 
+    if (success) {
+        fprintf(file, "  \"distance\": %.2lf,\n", distance);
+        fprintf(file, "  \"path\": [");
+        for (int i = 0; i < path_length; i++) {
+            fprintf(file, "%lld%s", path[i], (i == path_length - 1) ? "" : ", ");
+        }
+        fprintf(file, "]\n");
+    } else {
+        fprintf(file, "  \"error\": \"%s\"\n", error_message);
+    }
+
+    fprintf(file, "}\n");
     fclose(file);
+    printf("success: %s\n", success ? "true" : "false");
 }
 
 void dikjstra(Graph *graph, long long start, long long end) {
@@ -116,7 +122,7 @@ void dikjstra(Graph *graph, long long start, long long end) {
     }
 
     if (distances[end] == INFINITY) {
-        printf("Aucun chemin disponible entre %lld et %lld\n", start, end);
+        write_json_to_file("output.json", 0, "Aucun chemin disponible entre les planètes spécifiées.", NULL, 0, 0.0);
     } else {
         long long path[MAX_PLANETS];
         int path_length = 0;
@@ -129,8 +135,7 @@ void dikjstra(Graph *graph, long long start, long long end) {
             reversed_path[i] = path[path_length - 1 - i];
         }
 
-        write_json_to_file("output.json", reversed_path, path_length, distances[end]);
-        printf("Resultat ecrit dans le fichier output.json\n");
+        write_json_to_file("output.json", 1, NULL, reversed_path, path_length, distances[end]);
     }
 }
 
@@ -138,11 +143,25 @@ int main() {
     const char *filename = "graph.txt";
     Graph *graph = read_graph(filename);
 
+    if (!graph) {
+        write_json_to_file("output.json", 0, "Erreur lors de la lecture du fichier du graphe.", NULL, 0, 0.0);
+        return EXIT_FAILURE;
+    }
+
     long long start, end;
     printf("Entrez la planete de depart : ");
     scanf("%lld", &start);
+    if (start < 1 || start > MAX_PLANETS) {
+        write_json_to_file("output.json", 0, "Numéro de planète de départ invalide. Doit être entre 1 et 6000.", NULL, 0, 0.0);
+        return EXIT_FAILURE;
+    }
+
     printf("Entrez la planete d'arrivee : ");
     scanf("%lld", &end);
+    if (end < 1 || end > MAX_PLANETS) {
+        write_json_to_file("output.json", 0, "Numéro de planète d'arrivée invalide. Doit être entre 1 et 6000.", NULL, 0, 0.0);
+        return EXIT_FAILURE;
+    }
 
     dikjstra(graph, start, end);
 
