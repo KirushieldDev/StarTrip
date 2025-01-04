@@ -16,6 +16,7 @@ function insertLog($cnx, $sqlQuery) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $departurePlanet = trim($_POST['departurePlanet'] ?? '');
     $arrivalPlanet = trim($_POST['arrivalPlanet'] ?? '');
+    $legion = trim($_POST['legion'] ?? '');
 
     if (!empty($departurePlanet) && !empty($arrivalPlanet)) {
         if (strtolower($departurePlanet) === strtolower($arrivalPlanet)) {
@@ -38,11 +39,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     insertLog($cnx, $sqlQuery);
 
                     echo "
-                    <form id='redirectForm' action='../src/result.php' method='POST'>
+                    <form id='redirectForm' action='../exec.php' method='POST'>
                         <input type='hidden' name='departurePlanetId' value='$departurePlanetId'>
                         <input type='hidden' name='arrivalPlanetId' value='$arrivalPlanetId'>
                         <input type='hidden' name='departurePlanet' value='" . htmlspecialchars($departurePlanet) . "'>
                         <input type='hidden' name='arrivalPlanet' value='" . htmlspecialchars($arrivalPlanet) . "'>
+                        <input type='hidden' name='legion'  value='" . htmlspecialchars($legion) . "'>
                     </form>
                     <script>document.getElementById('redirectForm').submit();</script>";
                     exit();
