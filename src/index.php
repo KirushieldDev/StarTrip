@@ -11,6 +11,15 @@ try {
 } catch (Exception $e) {
     echo "Error : " . $e->getMessage();
 }
+
+// Get the unique legions from the ship table
+try {
+    $stmt = $cnx->prepare("SELECT DISTINCT camp FROM ship ORDER BY camp");
+    $stmt->execute();
+    $legions = $stmt->fetchAll(PDO::FETCH_COLUMN);
+} catch (Exception $e) {
+    echo "Error : " . $e->getMessage();
+}
 ?>
 
 
@@ -20,7 +29,6 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search for a Trip</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../css/home.css">
 </head>
 <body class="bg-dark">
@@ -65,67 +73,38 @@ try {
                     </div>
                 </div>
 
-                <!-- Day of the Week -->
+                <!-- Time Selection -->
                 <div class="col-md-6">
-                    <label for="dayOfWeek" class="form-label fw-semibold">
-                        <i class="bi bi-calendar3 text-info"></i> Day of the Week
+                    <label for="timePreference" class="form-label fw-semibold">
+                        <i class="bi bi-clock-fill text-warning"></i> Time Preference
                     </label>
-                    <select id="dayOfWeek" name="dayOfWeek" class="form-select">
-                        <option value="no-preference" selected>No Preference</option>
-                        <option value="Primeday">Primeday</option>
-                        <option value="Centaxday">Centaxday</option>
-                        <option value="Taungsday">Taungsday</option>
-                        <option value="Zhellday">Zhellday</option>
-                        <option value="Benduday">Benduday</option>
+                    <select id="timePreference" name="timePreference" class="form-select mb-2">
+                        <option value="departure">Departure Time</option>
+                        <option value="arrival">Arrival Time</option>
                     </select>
+                    
+                    <div class="input-group">
+                        <input type="datetime-local" 
+                               id="selectedTime" 
+                               name="selectedTime" 
+                               class="form-control"
+                               min="<?php echo date('Y-m-d\TH:i'); ?>"
+                               required>
+                    </div>
                 </div>
 
-                <!-- Ship -->
+                <!-- Legion Selection -->
                 <div class="col-md-6">
-                    <label for="ship" class="form-label fw-semibold">
-                        <i class="bi bi-rocket-fill text-warning"></i> Ship
+                    <label for="legion" class="form-label fw-semibold">
+                        <i class="bi bi-shield-fill text-info"></i> Legion
                     </label>
-                    <select id="ship" name="ship" class="form-select">
-
-                        <?php
-                        try {
-                            $stmt = $cnx->prepare("SELECT name FROM ship");
-                            $stmt->execute();
-                            $ships = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                        } catch (Exception $e) {
-                            echo "Error: " . $e->getMessage();
-                        }
-                        ?>
-                        <option value="no-preference" selected>No Preference</option>
-                        <?php foreach ($ships as $ship): ?>
-                            <option value="<?= htmlspecialchars($ship['name']) ?>"><?= htmlspecialchars($ship['name']) ?></option>
+                    <select id="legion" name="legion" class="form-select" required>
+                        <option value="">Select a Legion</option>
+                        <?php foreach ($legions as $legion): ?>
+                            <option value="<?php echo htmlspecialchars($legion); ?>">
+                                <?php echo htmlspecialchars($legion); ?>
+                            </option>
                         <?php endforeach; ?>
-
-                    </select>
-                </div>
-
-                <!-- Planet Alignment -->
-                <div class="col-md-6">
-                    <label for="planetAlignment" class="form-label fw-semibold">
-                        <i class="bi bi-flag-fill text-primary"></i> Planet Alignment
-                    </label>
-                    <select id="planetAlignment" name="planetAlignment" class="form-select">
-                        <option value="no-preference" selected>No Preference</option>
-                        <option value="Republic">Republic</option>
-                        <option value="Empire">Empire</option>
-                        <option value="Neutral">Neutral</option>
-                    </select>
-                </div>
-
-                <!-- Travel Type -->
-                <div class="col-md-6">
-                    <label for="travelType" class="form-label fw-semibold">
-                        <i class="bi bi-arrow-right-circle-fill text-success"></i> Travel Type
-                    </label>
-                    <select id="travelType" name="travelType" class="form-select">
-                        <option value="direct" selected>Direct Flight</option>
-                        <option value="nearest-neighbor">Nearest Neighbor</option>
-                        <option value="shortest-path">Shortest Path</option>
                     </select>
                 </div>
 
