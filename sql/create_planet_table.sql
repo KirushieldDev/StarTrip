@@ -1,4 +1,4 @@
-CREATE TABLE `planet` (
+CREATE TABLE IF NOT EXISTS `planet` (
     `id` int(11) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `name` varchar(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
     `image` varchar(255) DEFAULT NULL,

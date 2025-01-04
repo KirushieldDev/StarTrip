@@ -98,8 +98,8 @@ try {
                     <label for="legion" class="form-label fw-semibold">
                         <i class="bi bi-shield-fill text-info"></i> Legion
                     </label>
-                    <select id="legion" name="legion" class="form-select" required>
-                        <option value="">Select a Legion</option>
+                    <select id="legion" name="legion" class="form-select">
+                        <option value="">Not important</option>
                         <?php foreach ($legions as $legion): ?>
                             <option value="<?php echo htmlspecialchars($legion); ?>">
                                 <?php echo htmlspecialchars($legion); ?>

@@ -1,4 +1,4 @@
-CREATE TABLE `ship` (
+CREATE TABLE IF NOT EXISTS `ship` (
     `id` int(11) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `name` varchar(255) NOT NULL,
     `camp` varchar(255) NOT NULL,

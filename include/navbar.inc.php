@@ -1,6 +1,7 @@
 <?php
-include('links.inc.php');
-require_once '../configs/config.php';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 ?>
 
 <nav class="navbar navbar-expand-lg bg-body-tertiary">
@@ -51,6 +52,22 @@ require_once '../configs/config.php';
                     </a>
                 </li>
             </ul>
+            <div class="ms-auto">
+                <?php if(isset($_SESSION['user'])): ?>
+                    <div class="dropdown">
+                        <button class="btn btn-dark dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <?php echo htmlspecialchars($_SESSION['user']['username']); ?>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="../scripts/logout.php">Logout</a></li>
+                        </ul>
+                    </div>
+                <?php else: ?>
+                    <a href="../src/login.php" class="btn btn-outline-dark">
+                        <i class="bi bi-box-arrow-in-right"></i> Login
+                    </a>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 </nav>

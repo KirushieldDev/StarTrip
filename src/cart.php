@@ -3,7 +3,6 @@ global $cnx;
 require_once '../configs/config.php';
 include('../include/links.inc.php');
 include('../include/navbar.inc.php');
-session_start();
 
 // Nettoyer les billets expirés
 $currentTime = time();
