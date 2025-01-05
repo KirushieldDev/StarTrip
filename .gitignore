@@ -1,5 +1,6 @@
 configs/config.php
 java/src/main/java/fr/uge/DatabaseConnection.java
+java/src/DatabaseConnection.java
 .idea/
 graph.txt
 out/
