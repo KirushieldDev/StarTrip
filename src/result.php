@@ -17,6 +17,10 @@ $selectedShipId = $_POST['shipId'] ?? null;
 $capacity = trim($_POST['capacity'] ?? '');
 
 try {
+    // Read the output JSON file
+    $jsonContent = file_get_contents('../output.json');
+    $outputData = json_decode($jsonContent, true);
+
     $stmt = $cnx->prepare("SELECT * FROM planet WHERE id = :id");
 
     $stmt->bindParam(':id', $departurePlanetId);
@@ -28,13 +32,7 @@ try {
     $arrivalPlanetDetails = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($departurePlanetDetails && $arrivalPlanetDetails) {
-        $departureX = ($departurePlanetDetails['x'] + $departurePlanetDetails['sub_grid_x']) * 6;
-        $departureY = ($departurePlanetDetails['y'] + $departurePlanetDetails['sub_grid_y']) * 6;
-        $arrivalX = ($arrivalPlanetDetails['x'] + $arrivalPlanetDetails['sub_grid_x']) * 6;
-        $arrivalY = ($arrivalPlanetDetails['y'] + $arrivalPlanetDetails['sub_grid_y']) * 6;
-
-        $distance = sqrt(pow($arrivalX - $departureX, 2) + pow($arrivalY - $departureY, 2));
-        $distance_km = $distance * pow(10, 9);
+        $distance_km = $outputData['distance'] ?? 0;
 
         $ship_stmt = $cnx->prepare("SELECT id, name, speed_kmh FROM ship");
         $ship_stmt->execute();
@@ -68,11 +66,6 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Results</title>
     <link rel="stylesheet" href="../css/result.css">
-    <script>
-        function submitForm() {
-            document.getElementById("shipForm").submit();
-        }
-    </script>
 </head>
 <body class="bg-dark text-light">
 <div class="container mt-5">
@@ -104,7 +97,7 @@ try {
             </div>
 
             <!-- Departure Planet -->
-            <div class="col-md-6 mb-4">
+            <div class="col-md-6 mb-5">
                 <div class="card border-success shadow-lg">
                     <div class="card-header text-center text-uppercase text-white bg-success fw-bold">
                         Departure Planet <i class="bi bi-geo-alt-fill"></i>
@@ -156,19 +149,91 @@ try {
 
         <!-- Ship Selector -->
         <div class="col-12 mb-4">
-            <form action="" method="POST" id="shipForm" class="text-center">
-                <input type="hidden" name="departurePlanetId" value="<?= htmlspecialchars($departurePlanetId) ?>">
-                <input type="hidden" name="arrivalPlanetId" value="<?= htmlspecialchars($arrivalPlanetId) ?>">
+            <h3 class="text-center mb-3">Trip Path</h3>
+            
+            <div class="card bg-dark border-secondary">
+                <div class="card-body">
+                    <?php 
+                    for ($i = 0; $i < count($outputData['path']) - 1; $i++):
+                        $currentPlanetId = $outputData['path'][$i];
+                        $nextPlanetId = $outputData['path'][$i + 1];
+                        
+                        $stmt->execute([':id' => $currentPlanetId]);
+                        $currentPlanet = $stmt->fetch(PDO::FETCH_ASSOC);
+                        
+                        $stmt->execute([':id' => $nextPlanetId]);
+                        $nextPlanet = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                <select name="shipId" id="shipId" class="form-select d-inline-block w-auto" onchange="submitForm()">
-                    <option value="" selected disabled>Select a ship</option>
-                    <?php foreach ($ships as $ship): ?>
-                        <option value="<?= $ship['id'] ?>" <?= $selectedShipId == $ship['id'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($ship['name']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </form>
+                        // Get the ships for each trip
+                        $ship_stmt = $cnx->prepare("
+                            SELECT s.* 
+                            FROM ship s 
+                            INNER JOIN trip t ON s.id = t.ship_id 
+                            WHERE t.planet_id = :departure_id 
+                            AND t.destination_planet_id = :arrival_id
+                        ");
+                        $ship_stmt->execute([
+                            ':departure_id' => $currentPlanetId,
+                            ':arrival_id' => $nextPlanetId
+                        ]);
+                        $available_ships = $ship_stmt->fetchAll(PDO::FETCH_ASSOC);
+                    ?>
+                        <div class="row align-items-center mb-4">
+                            <!-- Current Planet -->
+                            <div class="col-5">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-dark p-2 rounded-circle">
+                                        <?= planet::getHtmlImage($currentPlanet['id'], 'rounded-circle', 60, 60) ?>
+                                    </div>
+                                    <div class="ms-3">
+                                        <h5 class="mb-1 text-white"><?= htmlspecialchars($currentPlanet['name']) ?></h5>
+                                        <small class="text-white-50">
+                                            <i class="bi bi-geo-alt me-1"></i>
+                                            <?= htmlspecialchars($currentPlanet['region']) ?>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Arrow and Ships -->
+                            <div class="col-2 text-center">
+                                <i class="bi bi-arrow-right text-white fs-4"></i>
+                                <?php if (!empty($available_ships)): ?>
+                                    <div class="mt-2">
+                                        <?php foreach ($available_ships as $ship): ?>
+                                            <div class="badge bg-secondary mb-1" title="Speed: <?= number_format($ship['speed_kmh']) ?> km/h">
+                                                <i class="bi bi-rocket"></i> 
+                                                <?= htmlspecialchars($ship['name']) ?>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+
+                            <!-- Next Planet -->
+                            <div class="col-5">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-dark p-2 rounded-circle">
+                                        <?= planet::getHtmlImage($nextPlanet['id'], 'rounded-circle', 60, 60) ?>
+                                    </div>
+                                    <div class="ms-3">
+                                        <h5 class="mb-1 text-white"><?= htmlspecialchars($nextPlanet['name']) ?></h5>
+                                        <small class="text-white-50">
+                                            <i class="bi bi-geo-alt me-1"></i>
+                                            <?= htmlspecialchars($nextPlanet['region']) ?>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <?php if ($i < count($outputData['path']) - 2): ?>
+                            <hr class="border-secondary my-3">
+                        <?php endif; ?>
+
+                    <?php endfor; ?>
+                </div>
+            </div>
         </div>
 
         <!-- Display Selected Ship and Duration -->
