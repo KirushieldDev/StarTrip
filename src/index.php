@@ -130,7 +130,7 @@ try {
                 <!-- Capacity Selection -->
                 <div class="col-md-6">
                     <label for="capacity" class="form-label fw-semibold">
-                        <i class="bi bi-shield-fill text-info"></i> Number of persons
+                        <i class="bi bi-person-fill text-success"></i> Number of persons
                     </label>
                     <input type="number" id="capacity" name="capacity" class="form-control" min="1" max="<?php echo $max_capacity; ?>" value="1" placeholder="Enter capacity" required>
                 </div>
