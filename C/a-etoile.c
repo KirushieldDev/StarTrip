@@ -94,7 +94,7 @@ void write_json_to_file(const char *filename, int success, const char *error_mes
     printf("success: %s\n", success ? "true" : "false");
 }
 
-// Implémente l'algorithme de Dijkstra pour trouver le chemin le plus court
+// Implémente l'algorithme de Dikjstra pour trouver le chemin le plus court
 void dikjstra(Graph *graph, long long start, long long end) {
     double distances[MAX_PLANETS]; // Tableau des distances minimales
     long long previous[MAX_PLANETS]; // Tableau des prédécesseurs
@@ -203,7 +203,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    // Exécute l'algorithme de Dijkstra
+    // Exécute l'algorithme de Dikjstra
     dikjstra(graph, start, end);
 
     return 0;
