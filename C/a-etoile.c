@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <limits.h>
 
 #define INFINITY LLONG_MAX // Distance infinie
@@ -63,7 +62,7 @@ Graph* read_graph(const char *filename) {
 }
 
 // Écrit les résultats au format JSON dans un fichier
-void write_json_to_file(const char *filename, int success, const char *error_message, long long *path, int path_length, double distance) {
+void write_json_to_file(const char *filename, int success, const char *error_message, long long *path, int path_length, double distance, double *segment_distances) {
     FILE *file = fopen(filename, "w");
     if (!file) {
         perror("Erreur lors de l'ouverture du fichier JSON");
@@ -78,6 +77,12 @@ void write_json_to_file(const char *filename, int success, const char *error_mes
         fprintf(file, "  \"path\": [");
         for (int i = 0; i < path_length; i++) {
             fprintf(file, "%lld%s", path[i], (i == path_length - 1) ? "" : ", ");
+        }
+        fprintf(file, "],\n");
+
+        fprintf(file, "  \"segment_distances\": [");
+        for (int i = 0; i < path_length - 1; i++) {
+            fprintf(file, "%.2lf%s", segment_distances[i], (i == path_length - 2) ? "" : ", ");
         }
         fprintf(file, "]\n");
     } else {
@@ -135,10 +140,11 @@ void dikjstra(Graph *graph, long long start, long long end) {
 
     if (distances[end] == INFINITY) {
         // Aucune route trouvée entre start et end
-        write_json_to_file("output.json", 0, "Aucun chemin disponible entre les planètes spécifiées.", NULL, 0, 0.0);
+        write_json_to_file("output.json", 0, "Aucun chemin disponible entre les planètes spécifiées.", NULL, 0, 0.0, NULL);
     } else {
         // Reconstruit le chemin le plus court
         long long path[MAX_PLANETS];
+        double segment_distances[MAX_PLANETS - 1];
         int path_length = 0;
         for (long long at = end; at != -1; at = previous[at]) {
             path[path_length++] = at;
@@ -150,7 +156,19 @@ void dikjstra(Graph *graph, long long start, long long end) {
             reversed_path[i] = path[path_length - 1 - i];
         }
 
-        write_json_to_file("output.json", 1, NULL, reversed_path, path_length, distances[end]);
+        // Calcule les distances entre les segments du chemin
+        for (int i = 0; i < path_length - 1; i++) {
+            Node *neighbor = graph->adjacency_list[reversed_path[i]];
+            while (neighbor) {
+                if (neighbor->edge.destination == reversed_path[i + 1]) {
+                    segment_distances[i] = neighbor->edge.distance;
+                    break;
+                }
+                neighbor = neighbor->next;
+            }
+        }
+
+        write_json_to_file("output.json", 1, NULL, reversed_path, path_length, distances[end], segment_distances);
     }
 }
 
@@ -167,12 +185,12 @@ int main(int argc, char *argv[]) {
 
     // Vérifie que les indices des planètes sont valides
     if (start < 1 || start > MAX_PLANETS) {
-        write_json_to_file("output.json", 0, "Numéro de planète de départ invalide. Doit être entre 1 et 6000.", NULL, 0, 0.0);
+        write_json_to_file("output.json", 0, "Numéro de planète de départ invalide. Doit être entre 1 et 6000.", NULL, 0, 0.0, NULL);
         return EXIT_FAILURE;
     }
 
     if (end < 1 || end > MAX_PLANETS) {
-        write_json_to_file("output.json", 0, "Numéro de planète d'arrivée invalide. Doit être entre 1 et 6000.", NULL, 0, 0.0);
+        write_json_to_file("output.json", 0, "Numéro de planète d'arrivée invalide. Doit être entre 1 et 6000.", NULL, 0, 0.0, NULL);
         return EXIT_FAILURE;
     }
 
@@ -181,7 +199,7 @@ int main(int argc, char *argv[]) {
     Graph *graph = read_graph(filename);
 
     if (!graph) {
-        write_json_to_file("output.json", 0, "Erreur lors de la lecture du fichier du graphe.", NULL, 0, 0.0);
+        write_json_to_file("output.json", 0, "Erreur lors de la lecture du fichier du graphe.", NULL, 0, 0.0, NULL);
         return EXIT_FAILURE;
     }
 
