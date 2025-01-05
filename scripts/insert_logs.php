@@ -17,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $departurePlanet = trim($_POST['departurePlanet'] ?? '');
     $arrivalPlanet = trim($_POST['arrivalPlanet'] ?? '');
     $legion = trim($_POST['legion'] ?? '');
+    $capacity = trim($_POST['capacity'] ?? '');
 
     if (!empty($departurePlanet) && !empty($arrivalPlanet)) {
         if (strtolower($departurePlanet) === strtolower($arrivalPlanet)) {
@@ -45,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type='hidden' name='departurePlanet' value='" . htmlspecialchars($departurePlanet) . "'>
                         <input type='hidden' name='arrivalPlanet' value='" . htmlspecialchars($arrivalPlanet) . "'>
                         <input type='hidden' name='legion'  value='" . htmlspecialchars($legion) . "'>
+                        <input type='hidden' name='capacity'  value='" . htmlspecialchars($capacity) . "'>
                     </form>
                     <script>document.getElementById('redirectForm').submit();</script>";
                     exit();
