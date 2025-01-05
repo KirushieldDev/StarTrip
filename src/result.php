@@ -210,7 +210,19 @@ try {
 
                 <!-- Trip Path -->
                 <div class="col-12 mb-4">
-                    <h3 class="text-center mb-4 text-white">Trip Path</h3>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="text-white mb-0">Trip Path</h4>
+                        <form action="../scripts/add_to_cart.php" method="POST">
+                            <input type="hidden" name="departure_planet_id" value="<?= $departurePlanetId ?>">
+                            <input type="hidden" name="arrival_planet_id" value="<?= $arrivalPlanetId ?>">
+                            <input type="hidden" name="full_path" value="<?= htmlspecialchars(json_encode($outputData['path'])) ?>">
+                            <input type="hidden" name="total_distance" value="<?= $outputData['distance'] ?>">
+                            <input type="hidden" name="passengers" value="<?= htmlspecialchars($capacity) ?>">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-cart-plus"></i> Add to Cart
+                            </button>
+                        </form>
+                    </div>
                     <div class="card bg-dark border-secondary">
                         <div class="card-body">
                             <?php
