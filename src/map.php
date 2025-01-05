@@ -5,8 +5,8 @@ require_once '../class/planet.php';
 include '../include/links.inc.php';
 include '../include/navbar.inc.php';
 
-$departurePlanetId = $_GET['departurePlanetId'];
-$arrivalPlanetId = $_GET['arrivalPlanetId'];
+$departurePlanetId = $_POST['departurePlanetId'];
+$arrivalPlanetId = $_POST['arrivalPlanetId'];
 
 if ($departurePlanetId && $arrivalPlanetId) {
     $departure = Planet::getPlanetById($departurePlanetId, $cnx);
