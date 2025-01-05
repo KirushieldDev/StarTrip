@@ -9,7 +9,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     $capacity = trim($_POST['capacity'] ?? '');
     $timePreference = $_POST['timePreference'] ?? null;
     $selectedTime = $_POST['selectedTime'] ?? null;
-    //exec('java -jar target/java-1.0-SNAPSHOT.jar ' . $legion . ' ' . $capacity);
+
+    exec('java -jar java/target/java-1.0-SNAPSHOT.jar ' . $legion . ' ' . $capacity);
 
     //Mettrz votre chemin vers a-etoile.exe
     $exePath = 'C:\Users\alexi\BUT2\StarTrip\a-etoile.exe';
