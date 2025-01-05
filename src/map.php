@@ -5,8 +5,8 @@ require_once '../class/planet.php';
 include '../include/links.inc.php';
 include '../include/navbar.inc.php';
 
-$departurePlanetId = $_GET['departurePlanetId'];
-$arrivalPlanetId = $_GET['arrivalPlanetId'];
+$departurePlanetId = $_POST['departurePlanetId'];
+$arrivalPlanetId = $_POST['arrivalPlanetId'];
 
 if ($departurePlanetId && $arrivalPlanetId) {
     $departure = Planet::getPlanetById($departurePlanetId, $cnx);
@@ -47,6 +47,31 @@ foreach ($planets as $planet) {
     $minX = min($minX, $x);
     $minY = min($minY, $y);
 }
+
+// Load the output.json file
+$outputData = json_decode(file_get_contents('../output.json'), true);
+
+if (!$outputData || !$outputData['success']) {
+    die("Failed to load path data.");
+}
+
+$pathIds = $outputData['path'];  // Planet IDs in the path
+$distance = $outputData['distance'];  // Total distance
+
+// Map path IDs to planet details for visualization
+$pathPlanets = array_filter($planets, fn($planet) => in_array($planet['id'], $pathIds));
+
+// Add path coordinates to mapData
+$pathCoordinates = [];
+foreach ($pathIds as $planetId) {
+    $planet = array_filter($planets, fn($p) => $p['id'] == $planetId);
+    if (!empty($planet)) {
+        $planet = reset($planet); // Get the first element of the filtered array
+        [$x, $y] = Planet::calculatePosition($planet['x'], $planet['sub_grid_x'], $planet['y'], $planet['sub_grid_y']);
+        $pathCoordinates[] = [$x, $y];
+    }
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -91,7 +116,8 @@ foreach ($planets as $planet) {
             region: "<?= htmlspecialchars($arrival['region']) ?>",
             imageHtml: `<?= Planet::getHtmlImage($arrival['id']) ?>`
         },
-        allPlanets: <?= json_encode($planetData) ?>
+        allPlanets: <?= json_encode($planetData) ?>,
+        pathCoordinates: <?= json_encode($pathCoordinates) ?>
     };
 </script>
 <script src="../js/map.js"></script>

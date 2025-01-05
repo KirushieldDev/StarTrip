@@ -1,7 +1,8 @@
 <?php
-
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header("Location: src/index.php");
+    exit();
+} else {
     $departurePlanet = trim($_POST['departurePlanetId'] ?? '');
     $arrivalPlanet = trim($_POST['arrivalPlanetId'] ?? '');
     $legion = trim($_POST['legion'] ?? '');
