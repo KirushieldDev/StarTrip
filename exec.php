@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     $legion = trim($_POST['legion'] ?? '');
     $capacity = trim($_POST['capacity'] ?? '');
 
-    //exec('java -jar target/java-1.0-SNAPSHOT.jar ' . $legion);
+    //exec('java -jar target/java-1.0-SNAPSHOT.jar ' . $legion . ' ' . $capacity);
 
     //Mettrz votre chemin vers a-etoile.exe
     $exePath = 'C:\\Users\\alexi\\BUT2\\StarTrip\\a-etoile.exe';
