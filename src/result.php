@@ -80,7 +80,7 @@ try {
         </a>
 
         <?php if ($departurePlanetDetails && $arrivalPlanetDetails): ?>
-            <form action="map.php" method="GET" class="m-0">
+            <form action="map.php" method="POST" class="m-0">
                 <input type="hidden" name="departurePlanetId" value="<?= htmlspecialchars($departurePlanetId) ?>">
                 <input type="hidden" name="arrivalPlanetId" value="<?= htmlspecialchars($arrivalPlanetId) ?>">
                 <button type="submit" class="btn btn-outline-light">
