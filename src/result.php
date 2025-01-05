@@ -202,28 +202,50 @@ if (!empty($timePreference) && !empty($selectedTime)) {
 
             <?php else: ?>
                 <!-- If success is true, display the distance -->
-                <div class="col-12 mb-3">
-                    <div class="alert alert-success text-center">
-                        <h4>Distance :</h4>
-                        <p class="fs-5"><?= number_format($outputData['distance'], 2) ?> km</p>
-                        <h4>Estimated travel time:</h4>
-                        <p class="fs-5">
-                            <?= $days . " days, " . $hours . " hours, and " . $minutes . " minutes"; ?>
-                        </p>
-                        <?php if (!empty($timePreference) && !empty($selectedTime)): ?>
-                            <hr class="my-4">
-                            <?php if ($timePreference === 'departure'): ?>
-                                <h4>Departure Time:</h4>
-                                <p class="fs-5 text-primary"><?= (new DateTime($selectedTime))->format('d M Y, H:i'); ?></p>
-                                <h4>Estimated Arrival Time:</h4>
-                                <p class="fs-5 text-success"><?= $selectedDateTime->format('d M Y, H:i'); ?></p>
-                            <?php elseif ($timePreference === 'arrival'): ?>
-                                <h4>Arrival Time:</h4>
-                                <p class="fs-5 text-success"><?= (new DateTime($selectedTime))->format('d M Y, H:i'); ?></p>
-                                <h4>Recommended departure time:</h4>
-                                <p class="fs-5 text-primary"><?= $selectedDateTime->format('d M Y, H:i'); ?></p>
+                <div class="col-12 mb-4">
+                    <div class="bg-dark border border-secondary rounded p-4">
+                        <div class="row text-center">
+                            <div class="col-md-4 border-end border-secondary">
+                                <div class="px-3">
+                                    <i class="bi bi-rulers text-primary mb-2"></i>
+                                    <h6 class="text-white-50 mb-2">Total Distance</h6>
+                                    <p class="h5 text-white mb-0"><?= number_format($outputData['distance'], 2) ?> km</p>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 border-end border-secondary">
+                                <div class="px-3">
+                                    <i class="bi bi-clock text-warning mb-2"></i>
+                                    <h6 class="text-white-50 mb-2">Travel Duration</h6>
+                                    <p class="h5 text-white mb-0">
+                                        <?= $days ?>d <?= $hours ?>h <?= $minutes ?>m
+                                    </p>
+                                </div>
+                            </div>
+
+                            <?php if (!empty($timePreference) && !empty($selectedTime)): ?>
+                                <div class="col-md-4">
+                                    <div class="px-3">
+                                        <i class="bi bi-calendar-event text-success mb-2"></i>
+                                        <?php if ($timePreference === 'departure'): ?>
+                                            <h6 class="text-white-50 mb-2">Departure → Arrival</h6>
+                                            <p class="text-white mb-0">
+                                                <?= (new DateTime($selectedTime))->format('d/m/Y, H:i'); ?>
+                                                <i class="bi bi-arrow-right mx-2 text"></i>
+                                                <?= $selectedDateTime->format('d/m/Y, H:i'); ?>
+                                            </p>
+                                        <?php elseif ($timePreference === 'arrival'): ?>
+                                            <h6 class="text-white-50 mb-2">Departure → Arrival</h6>
+                                            <p class="text-white mb-0">
+                                                <?= $selectedDateTime->format('d/m/Y, H:i'); ?>
+                                                <i class="bi bi-arrow-right mx-2 text"></i>
+                                                <?= (new DateTime($selectedTime))->format('d/m/Y, H:i'); ?>
+                                            </p>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
                             <?php endif; ?>
-                        <?php endif; ?>
+                        </div>
                     </div>
                 </div>
 
@@ -306,7 +328,7 @@ if (!empty($timePreference) && !empty($selectedTime)) {
                                 $stmt->execute([':id' => $nextPlanetId]);
                                 $nextPlanet = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                                // Récupérer les vaisseaux disponibles pour ce trajet
+                                // Get ship fot this trip
                                 $ship_stmt = $cnx->prepare("
                                     SELECT s.* 
                                     FROM ship s 
