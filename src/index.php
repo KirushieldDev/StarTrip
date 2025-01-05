@@ -20,6 +20,18 @@ try {
 } catch (Exception $e) {
     echo "Error : " . $e->getMessage();
 }
+
+// Get the max capacity of ship
+try {
+    $stmt = $cnx->prepare("SELECT MAX(capacity) AS max_capacity FROM `ship`");
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $max_capacity = $result['max_capacity'] ?? 0;
+} catch (Exception $e) {
+    echo "Error: " . $e->getMessage();
+}
+
+
 ?>
 
 
@@ -113,6 +125,14 @@ try {
                             </option>
                         <?php endforeach; ?>
                     </select>
+                </div>
+
+                <!-- Capacity Selection -->
+                <div class="col-md-6">
+                    <label for="capacity" class="form-label fw-semibold">
+                        <i class="bi bi-shield-fill text-info"></i> Number of persons
+                    </label>
+                    <input type="number" id="capacity" name="capacity" class="form-control" min="1" max="<?php echo $max_capacity; ?>" value="1" placeholder="Enter capacity" required>
                 </div>
 
                 <!-- Submit Button -->
