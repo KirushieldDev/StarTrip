@@ -16,6 +16,9 @@ $legion = isset($_POST['legion']) ? $_POST['legion'] : 'Empty';
 $selectedShipId = $_POST['shipId'] ?? null;
 $capacity = trim($_POST['capacity'] ?? '');
 
+$timePreference = $_POST['timePreference'] ?? null;
+$selectedTime = $_POST['selectedTime'] ?? null;
+
 try {
     // Read the output JSON file
     $jsonContent = file_get_contents('../output.json');
@@ -57,6 +60,54 @@ try {
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage();
 }
+
+try {
+    $total_travel_time_in_hours = 0;
+    $segment_distances = $outputData['segment_distances'];
+
+    for ($i = 0; $i < count($outputData['path']) - 1; $i++) {
+        $currentPlanetId = $outputData['path'][$i];
+        $nextPlanetId = $outputData['path'][$i + 1];
+
+        $ship_stmt = $cnx->prepare("
+            SELECT s.speed_kmh
+            FROM ship s
+            INNER JOIN trip t ON s.id = t.ship_id
+            WHERE t.planet_id = :departure_id AND t.destination_planet_id = :arrival_id
+        ");
+        $ship_stmt->execute([':departure_id' => $currentPlanetId, ':arrival_id' => $nextPlanetId]);
+        $available_ships = $ship_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (empty($available_ships)) {
+            throw new Exception("No available ships for the segment from $currentPlanetId to $nextPlanetId");
+        }
+        $ship = $available_ships[0];
+        $speed = $ship['speed_kmh'];
+        $segment_distance = $segment_distances[$i];
+        $segment_time_in_hours = $segment_distance / $speed;
+        $total_travel_time_in_hours += $segment_time_in_hours;
+    }
+    $total_travel_time_in_minutes = $total_travel_time_in_hours * 60;
+    $days = floor($total_travel_time_in_minutes / 1440);
+    $remaining_minutes = $total_travel_time_in_minutes % 1440;
+    $hours = floor($remaining_minutes / 60);
+    $minutes = $remaining_minutes % 60;
+
+} catch (Exception $e) {
+    echo "Error: " . $e->getMessage();
+}
+
+if (!empty($timePreference) && !empty($selectedTime)) {
+    $selectedDateTime = new DateTime($selectedTime);
+    $total_travel_time_in_seconds = ($days * 24 * 3600) + ($hours * 3600) + ($minutes * 60);
+    if ($timePreference === 'departure') {
+        $selectedDateTime->add(new DateInterval('PT' . $total_travel_time_in_seconds . 'S'));
+    } elseif ($timePreference === 'arrival') {
+        $selectedDateTime->sub(new DateInterval('PT' . $total_travel_time_in_seconds . 'S'));
+
+    }
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -155,8 +206,27 @@ try {
                     <div class="alert alert-success text-center">
                         <h4>Distance :</h4>
                         <p class="fs-5"><?= number_format($outputData['distance'], 2) ?> km</p>
+                        <h4>Estimated travel time:</h4>
+                        <p class="fs-5">
+                            <?= $days . " days, " . $hours . " hours, and " . $minutes . " minutes"; ?>
+                        </p>
+                        <?php if (!empty($timePreference) && !empty($selectedTime)): ?>
+                            <hr class="my-4">
+                            <?php if ($timePreference === 'departure'): ?>
+                                <h4>Departure Time:</h4>
+                                <p class="fs-5 text-primary"><?= (new DateTime($selectedTime))->format('d M Y, H:i'); ?></p>
+                                <h4>Estimated Arrival Time:</h4>
+                                <p class="fs-5 text-success"><?= $selectedDateTime->format('d M Y, H:i'); ?></p>
+                            <?php elseif ($timePreference === 'arrival'): ?>
+                                <h4>Arrival Time:</h4>
+                                <p class="fs-5 text-success"><?= (new DateTime($selectedTime))->format('d M Y, H:i'); ?></p>
+                                <h4>Recommended departure time:</h4>
+                                <p class="fs-5 text-primary"><?= $selectedDateTime->format('d M Y, H:i'); ?></p>
+                            <?php endif; ?>
+                        <?php endif; ?>
                     </div>
                 </div>
+
 
                 <!-- Departure Planet -->
                 <div class="col-md-6 mb-4">
