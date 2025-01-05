@@ -141,9 +141,6 @@ try {
                                             <td><?= htmlspecialchars($segment['arr_name']) ?></td>
                                             <td>
                                                 <?= htmlspecialchars($segment['ship_name']) ?>
-                                                <small class="text-muted d-block">
-                                                    <?= number_format($segment['speed_kmh']) ?> km/h
-                                                </small>
                                             </td>
                                             <td><?= date('Y-m-d H:i', strtotime($segment['departure_time'])) ?></td>
                                             <td><?= date('Y-m-d H:i', strtotime($segment['arrival_time'])) ?></td>
