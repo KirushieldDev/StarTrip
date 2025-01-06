@@ -36,9 +36,15 @@ try {
     $ticket = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$ticket) {
+        $_SESSION['error'] = "Ticket not found.";
         header('Location: bookings.php');
         exit();
     }
+
+    // Vérifier si le voyage est terminé
+    $isCompletedJourney = strtotime($ticket['arrival_time']) < time();
+    $status = $isCompletedJourney ? 'Completed' : 'Confirmed';
+    $statusClass = $isCompletedJourney ? 'bg-secondary' : 'bg-success';
 
     // Récupérer tous les segments du ticket
     $segments_stmt = $cnx->prepare("
@@ -91,10 +97,12 @@ try {
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 text-white">Booking Reference: #<?= str_pad($ticket['id'], 6, '0', STR_PAD_LEFT) ?></h5>
                 <div>
-                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
-                            data-bs-target="#deleteModal">
-                        <i class="bi bi-trash me-2"></i>Cancel Booking
-                    </button>
+                    <span class="badge <?= $statusClass ?> me-2"><?= $status ?></span>
+                    <?php if (!$isCompletedJourney): ?>
+                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="bi bi-trash me-2"></i>Cancel Booking
+                        </button>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -188,28 +196,42 @@ try {
     </div>
 </div>
 
-<!-- The popup to confirm cancellation -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content bg-dark text-light">
-            <div class="modal-header border-secondary">
-                <h5 class="modal-title">Cancel Booking</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to cancel this booking ?</p>
-            </div>
-            <div class="modal-footer border-secondary">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <form action="../scripts/delete_ticket.php" method="POST">
-                    <input type="hidden" name="ticket_id" value="<?= $ticket['id'] ?>">
-                    <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-trash me-2"></i>Cancel Booking
-                    </button>
-                </form>
+<!-- Modal de suppression -->
+<?php if (!$isCompletedJourney): ?>
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title">Cancel Booking #<?= str_pad($ticket['id'], 6, '0', STR_PAD_LEFT) ?></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to cancel this booking? This action cannot be undone.</p>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        All segments associated with this booking will also be cancelled.
+                    </div>
+                    <div class="d-flex justify-content-between border-top border-secondary pt-3 mt-3">
+                        <div>
+                            <strong><?= htmlspecialchars($ticket['departure_name']) ?></strong>
+                            <i class="bi bi-arrow-right mx-2"></i>
+                            <strong><?= htmlspecialchars($ticket['arrival_name']) ?></strong>
+                        </div>
+                        <strong class="text-success"><?= number_format($ticket['price'], 2) ?> Credits</strong>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <form action="../scripts/delete_ticket.php" method="POST">
+                        <input type="hidden" name="ticket_id" value="<?= $ticket['id'] ?>">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash me-2"></i>Cancel Booking
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
+<?php endif; ?>
 </body>
 </html>
