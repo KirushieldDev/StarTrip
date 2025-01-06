@@ -43,7 +43,8 @@ try {
 
     <?php if (empty($tickets)): ?>
         <div class="alert alert-info text-center">
-            <p><span class="fw-bold"><?= htmlspecialchars($_SESSION['user']['username']) ?></span>, you don't have any booked trips yet!</p>
+            <p><span class="fw-bold"><?= htmlspecialchars($_SESSION['user']['username']) ?></span>, you don't have any
+                booked trips yet!</p>
             <a href="index.php" class="btn btn-primary mt-3">
                 <i class="bi bi-rocket"></i> Book a trip
             </a>
@@ -89,12 +90,19 @@ try {
                                     <?= date('d/m/Y H:i', strtotime($ticket['departure_time'])) ?>
                                     <i class="bi bi-arrow-right mx-2"></i>
                                     <?= date('d/m/Y H:i', strtotime($ticket['arrival_time'])) ?>
+                                    <?php
+                                    $isCompletedJourney = strtotime($ticket['arrival_time']) < time();
+                                    ?>
                                 </div>
                                 <div>
-                                    <button type="button" class="btn btn-danger btn-sm me-2" data-bs-toggle="modal" data-bs-target="#deleteModal<?= $ticket['id'] ?>">
-                                        <i class="bi bi-trash me-2"></i>Cancel
-                                    </button>
-                                    <a href="ticket_details.php?id=<?= $ticket['id'] ?>" class="btn btn-primary btn-sm me-2">
+                                    <?php if (!$isCompletedJourney): ?>
+                                        <button type="button" class="btn btn-danger btn-sm me-2" data-bs-toggle="modal"
+                                                data-bs-target="#deleteModal<?= $ticket['id'] ?>">
+                                            <i class="bi bi-trash me-2"></i>Cancel
+                                        </button>
+                                    <?php endif; ?>
+                                    <a href="ticket_details.php?id=<?= $ticket['id'] ?>"
+                                       class="btn btn-primary btn-sm me-2">
                                         <i class="bi bi-info-circle me-2"></i>Details
                                     </a>
                                 </div>
@@ -116,7 +124,14 @@ try {
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure you want to cancel this booking ?</p>
+                    <?php if ($isCompletedJourney): ?>
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            This journey has already been completed and cannot be cancelled.
+                        </div>
+                    <?php else: ?>
+                        <p>Are you sure you want to cancel this booking? This action cannot be undone.</p>
+                    <?php endif; ?>
                 </div>
                 <div class="modal-footer border-secondary">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
