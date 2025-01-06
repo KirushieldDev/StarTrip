@@ -12,7 +12,8 @@ try {
         '../sql/create_trip_table.sql',
         '../sql/create_cart.sql',
         '../sql/create_detailscart.sql',
-        '../sql/create_ticket.sql'
+        '../sql/create_ticket.sql',
+        '../sql/create_detailsticket.sql'
     ];
 
     foreach ($sqlFiles as $file) {
