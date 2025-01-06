@@ -17,12 +17,10 @@ try {
     $stmt = $cnx->prepare("
         SELECT c.*, 
                p1.name as departure_name,
-               p2.name as arrival_name,
-               s.name as ship_name
+               p2.name as arrival_name
         FROM cart c
         JOIN planet p1 ON c.departure_planet_id = p1.id
         JOIN planet p2 ON c.arrival_planet_id = p2.id
-        JOIN ship s ON c.ship_id = s.id
         WHERE c.user_id = ?
     ");
     $stmt->execute([$_SESSION['user']['id']]);
@@ -40,25 +38,24 @@ try {
 
     // Transfer cart items to tickets
     foreach ($cartItems as $item) {
+        // Create main ticket
         $stmt = $cnx->prepare("
             INSERT INTO ticket (
                 user_id,
                 departure_planet_id,
                 arrival_planet_id,
-                ship_id,
                 departure_time,
                 arrival_time,
                 price,
-                created_at
+                passengers
             ) VALUES (
                 :user_id,
                 :departure_planet_id,
                 :arrival_planet_id,
-                :ship_id,
                 :departure_time,
                 :arrival_time,
                 :price,
-                NOW()
+                :passengers
             )
         ");
 
@@ -66,14 +63,65 @@ try {
             'user_id' => $_SESSION['user']['id'],
             'departure_planet_id' => $item['departure_planet_id'],
             'arrival_planet_id' => $item['arrival_planet_id'],
-            'ship_id' => $item['ship_id'],
             'departure_time' => $item['departure_time'],
             'arrival_time' => $item['arrival_time'],
-            'price' => $item['price']
+            'price' => $item['price'],
+            'passengers' => $item['passengers']
         ]);
+
+        $ticketId = $cnx->lastInsertId();
+
+        // Get and transfer all segments from detailscart to detailsticket
+        $segments_stmt = $cnx->prepare("
+            SELECT * FROM detailscart 
+            WHERE id_cart = :cart_id
+        ");
+        $segments_stmt->execute(['cart_id' => $item['id']]);
+        $segments = $segments_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($segments as $segment) {
+            $detail_stmt = $cnx->prepare("
+                INSERT INTO detailsticket (
+                    id_ticket,
+                    user_id,
+                    departure_planet_id,
+                    arrival_planet_id,
+                    departure_time,
+                    arrival_time,
+                    ship_id,
+                    price,
+                    passengers
+                ) VALUES (
+                    :ticket_id,
+                    :user_id,
+                    :departure_planet_id,
+                    :arrival_planet_id,
+                    :departure_time,
+                    :arrival_time,
+                    :ship_id,
+                    :price,
+                    :passengers
+                )
+            ");
+
+            $detail_stmt->execute([
+                'ticket_id' => $ticketId,
+                'user_id' => $segment['user_id'],
+                'departure_planet_id' => $segment['departure_planet_id'],
+                'arrival_planet_id' => $segment['arrival_planet_id'],
+                'departure_time' => $segment['departure_time'],
+                'arrival_time' => $segment['arrival_time'],
+                'ship_id' => $segment['ship_id'],
+                'price' => $segment['price'],
+                'passengers' => $segment['passengers']
+            ]);
+        }
     }
 
-    // Clear user's cart
+    // Clear user's cart and detailscart
+    $stmt = $cnx->prepare("DELETE FROM detailscart WHERE user_id = ?");
+    $stmt->execute([$_SESSION['user']['id']]);
+    
     $stmt = $cnx->prepare("DELETE FROM cart WHERE user_id = ?");
     $stmt->execute([$_SESSION['user']['id']]);
 
