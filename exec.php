@@ -10,9 +10,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     $timePreference = $_POST['timePreference'] ?? null;
     $selectedTime = $_POST['selectedTime'] ?? null;
 
-    exec('java -jar java/target/java-1.0-SNAPSHOT.jar ' . $legion . ' ' . $capacity);
+    $InProd = false;
+    if($InProd){
+        exec("java -Dfile.encoding=UTF-8 -jar java/target/java-1.0-SNAPSHOT.jar " . $legion . " " . $capacity . " 2>&1", $output, $returnCode);
+    }else{
+        exec('java -jar java/target/java-1.0-SNAPSHOT.jar ' . $legion . ' ' . $capacity);
+    }
 
-    //Mettrz votre chemin vers a-etoile.exe
+    //Mettre votre chemin vers a-etoile.exe
     $exePath = 'C:\Users\alexi\BUT2\StarTrip\a-etoile.exe';
     $output = [];
     $returnVar = 0;

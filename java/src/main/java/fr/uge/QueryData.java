@@ -20,10 +20,8 @@ public class QueryData {
                 return;
             }
         }
-        String projectRootPath = System.getProperty("user.dir");
         try (Connection conn = DatabaseConnection.getConnection();
-             PrintWriter writer = new PrintWriter(projectRootPath + "/graph.txt")) {
-
+             PrintWriter writer = new PrintWriter("graph.txt")) {
             String query = "SELECT DISTINCT t.planet_id, t.destination_planet_id, " +
                     "(p1.x + p1.sub_grid_x) * 6 AS source_x, (p1.y + p1.sub_grid_y) * 6 AS source_y, " +
                     "(p2.x + p2.sub_grid_x) * 6 AS dest_x, (p2.y + p2.sub_grid_y) * 6 AS dest_y, " +
