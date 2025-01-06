@@ -7,11 +7,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     $arrivalPlanet = trim($_POST['arrivalPlanetId'] ?? '');
     $legion = trim($_POST['legion'] ?? '');
     $capacity = trim($_POST['capacity'] ?? '');
+    $timePreference = $_POST['timePreference'] ?? null;
+    $selectedTime = $_POST['selectedTime'] ?? null;
 
-    //exec('java -jar target/java-1.0-SNAPSHOT.jar ' . $legion);
+    $InProd = false;
+    if($InProd){
+        exec("java -Dfile.encoding=UTF-8 -jar java/target/java-1.0-SNAPSHOT.jar " . $legion . " " . $capacity . " 2>&1", $output, $returnCode);
+    }else{
+        exec('java -jar java/target/java-1.0-SNAPSHOT.jar ' . $legion . ' ' . $capacity);
+    }
 
-    //Mettrz votre chemin vers a-etoile.exe
-    $exePath = 'C:\\wamp64\\www\\StarTrip\\a-etoile.exe';
+    //Mettre votre chemin vers a-etoile.exe
+    $exePath = 'C:\Users\alexi\BUT2\StarTrip\a-etoile.exe';
     $output = [];
     $returnVar = 0;
     exec("$exePath $departurePlanet $arrivalPlanet", $output, $returnVar);
@@ -24,6 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             <input type='hidden' name='arrivalPlanet' value='" . htmlspecialchars($arrivalPlanet) . "'>
             <input type='hidden' name='legion'  value='" . htmlspecialchars($legion) . "'>
             <input type='hidden' name='capacity'  value='" . htmlspecialchars($capacity) . "'>
+            <input type='hidden' name='timePreference'  value='" . htmlspecialchars($timePreference) . "'>
+            <input type='hidden' name='selectedTime'  value='" . htmlspecialchars($selectedTime) . "'>
         </form>
         <script>document.getElementById('redirectForm').submit();</script>";
 }

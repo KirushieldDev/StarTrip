@@ -9,65 +9,134 @@ if (!isset($_SESSION['user'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $userId = $_SESSION['user']['id'];
+    $departurePlanetId = $_POST['departure_planet_id'];
+    $arrivalPlanetId = $_POST['arrival_planet_id'];
+    $departureTime = date('Y-m-d H:i:s'); // Temps actuel pour le départ
+    $arrivalTime = date('Y-m-d H:i:s'); // Sera mis à jour plus tard
+    $passengers = intval($_POST['passengers']);
+    $fullPath = json_decode($_POST['full_path'], true);
+    
     try {
-        $stmt = $cnx->prepare("
+        $cnx->beginTransaction();
+
+        // Créer d'abord l'entrée dans cart
+        $cart_stmt = $cnx->prepare("
             INSERT INTO cart (
-                user_id, 
-                departure_planet_id, 
-                arrival_planet_id, 
-                ship_id, 
-                price,
-                departure_time,
-                arrival_time
-            ) VALUES (?, ?, ?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? HOUR))
+                user_id, departure_planet_id, arrival_planet_id, 
+                departure_time, arrival_time, price, passengers
+            ) VALUES (
+                :user_id, :departure_id, :arrival_id, 
+                :departure_time, :arrival_time, :price, :passengers
+            )
+        ");
+        
+        $cart_stmt->execute([
+            ':user_id' => $userId,
+            ':departure_id' => $departurePlanetId,
+            ':arrival_id' => $arrivalPlanetId,
+            ':departure_time' => $departureTime,
+            ':arrival_time' => $arrivalTime,
+            ':price' => 0, // Prix initial à 0, sera mis à jour après
+            ':passengers' => $passengers
+        ]);
+        
+        $cartId = $cnx->lastInsertId();
+
+        // Créer les entrées dans detailscart pour chaque segment
+        for ($i = 0; $i < count($fullPath) - 1; $i++) {
+            $currentPlanetId = $fullPath[$i];
+            $nextPlanetId = $fullPath[$i + 1];
+
+            // Récupérer les détails du trajet
+            $trip_stmt = $cnx->prepare("
+                SELECT t.*, s.speed_kmh 
+                FROM trip t 
+                JOIN ship s ON t.ship_id = s.id 
+                WHERE t.planet_id = :departure_id 
+                AND t.destination_planet_id = :arrival_id
+                ORDER BY s.speed_kmh ASC
+                LIMIT 1
+            ");
+            
+            $trip_stmt->execute([
+                ':departure_id' => $currentPlanetId,
+                ':arrival_id' => $nextPlanetId
+            ]);
+            
+            $tripDetails = $trip_stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($tripDetails) {
+                // Calculer le prix pour ce segment
+                $distance = isset($_POST['total_distance']) ? floatval($_POST['total_distance']) / (count($fullPath) - 1) : 0;
+                $segmentPrice = ($distance / 1e9) * 100; // Prix de base
+                $speedFactor = ($tripDetails['speed_kmh'] / 1.08e9); // Comparaison avec vitesse lumière
+                $segmentPrice *= (1 + max(0, $speedFactor - 1)); // Ajustement selon la vitesse
+
+                $detail_stmt = $cnx->prepare("
+                    INSERT INTO detailscart (
+                        id_cart, user_id, departure_planet_id, arrival_planet_id,
+                        departure_time, arrival_time, ship_id, price, passengers
+                    ) VALUES (
+                        :cart_id, :user_id, :departure_id, :arrival_id,
+                        :departure_time, :arrival_time, :ship_id, :price, :passengers
+                    )
+                ");
+
+                $duration = $distance / $tripDetails['speed_kmh'];
+                $segmentArrivalTime = date('Y-m-d H:i:s', strtotime($departureTime . ' + ' . ceil($duration) . ' hours'));
+
+                $detail_stmt->execute([
+                    ':cart_id' => $cartId,
+                    ':user_id' => $userId,
+                    ':departure_id' => $currentPlanetId,
+                    ':arrival_id' => $nextPlanetId,
+                    ':departure_time' => $departureTime,
+                    ':arrival_time' => $segmentArrivalTime,
+                    ':ship_id' => $tripDetails['ship_id'],
+                    ':price' => $segmentPrice * $passengers,
+                    ':passengers' => $passengers
+                ]);
+
+                // Mettre à jour le temps de départ pour le prochain segment
+                $departureTime = $segmentArrivalTime;
+            }
+        }
+
+        // Calculer le total et mettre à jour cart
+        $total_stmt = $cnx->prepare("
+            SELECT SUM(price) as total_price 
+            FROM detailscart 
+            WHERE id_cart = :cart_id
         ");
 
-        // Calculate duration
-        $ship_stmt = $cnx->prepare("SELECT speed_kmh FROM ship WHERE id = ?");
-        $ship_stmt->execute([$_POST['ship_id']]);
-        $ship = $ship_stmt->fetch(PDO::FETCH_ASSOC);
+        $total_stmt->execute([':cart_id' => $cartId]);
+        $totalResult = $total_stmt->fetch(PDO::FETCH_ASSOC);
+        $totalPrice = $totalResult['total_price'];
 
-        // Calculate distance
-        $planet_stmt = $cnx->prepare("
-            SELECT 
-                p1.x as dep_x, p1.y as dep_y, 
-                p1.sub_grid_x as dep_sub_x, p1.sub_grid_y as dep_sub_y,
-                p2.x as arr_x, p2.y as arr_y,
-                p2.sub_grid_x as arr_sub_x, p2.sub_grid_y as arr_sub_y
-            FROM planet p1, planet p2 
-            WHERE p1.id = ? AND p2.id = ?
+        // Mettre à jour le prix total et les temps dans cart
+        $update_cart_stmt = $cnx->prepare("
+            UPDATE cart 
+            SET price = :total_price,
+                arrival_time = :arrival_time
+            WHERE id = :cart_id
         ");
-        $planet_stmt->execute([$_POST['departure_planet_id'], $_POST['arrival_planet_id']]);
-        $planets = $planet_stmt->fetch(PDO::FETCH_ASSOC);
 
-        $distance_km = sqrt(
-                pow(($planets['arr_x'] - $planets['dep_x']) * 1000 +
-                    ($planets['arr_sub_x'] - $planets['dep_sub_x']), 2) +
-                pow(($planets['arr_y'] - $planets['dep_y']) * 1000 +
-                    ($planets['arr_sub_y'] - $planets['dep_sub_y']), 2)
-            ) * 100000;
-
-        $duration_hours = $distance_km / $ship['speed_kmh'];
-
-        // Execute the query
-        $stmt->execute([
-            $_SESSION['user']['id'],
-            $_POST['departure_planet_id'],
-            $_POST['arrival_planet_id'],
-            $_POST['ship_id'],
-            $_POST['price'],
-            $duration_hours
+        $update_cart_stmt->execute([
+            ':total_price' => $totalPrice,
+            ':arrival_time' => $segmentArrivalTime,
+            ':cart_id' => $cartId
         ]);
 
+        $cnx->commit();
+        $_SESSION['success'] = "Trip added to cart successfully!";
         header('Location: ../src/cart.php');
         exit();
 
-    } catch (PDOException $e) {
-        $_SESSION['error_message'] = "Error adding to cart: " . $e->getMessage();
-        header('Location: index.php');
+    } catch (Exception $e) {
+        $cnx->rollBack();
+        $_SESSION['error'] = "Error adding trip to cart: " . $e->getMessage();
+        header('Location: ' . $_SERVER['HTTP_REFERER']);
         exit();
     }
-} else {
-    header('Location: ../src/index.php');
-    exit();
 }
