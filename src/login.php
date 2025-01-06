@@ -1,11 +1,15 @@
 <?php
+session_start();
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 global $cnx;
 require_once '../configs/config.php';
 include('../include/links.inc.php');
 include('../include/navbar.inc.php');
 
-// Redirect if user is already logged in
-if(isset($_SESSION['user'])) {
+if (isset($_SESSION['user'])) {
     header('Location: index.php');
     exit;
 }
@@ -28,7 +32,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'email' => $user['email'],
                     'role' => $user['role']
                 ];
-                header('Location: index.php');
+
+                if ($user['role'] === 'admin') {
+                    header('Location: admin.php');
+                }else{
+                    header('Location: index.php');
+                }
                 exit;
             } else {
                 $error = 'Invalid username or password';
