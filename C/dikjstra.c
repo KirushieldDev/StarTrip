@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-#include <math.h> // Pour la fonction sqrt
 
 #define INFINITY LLONG_MAX // Distance infinie
 #define MAX_PLANETS 6000 // Nombre maximum de planètes dans le graphe
@@ -95,37 +94,29 @@ void write_json_to_file(const char *filename, int success, const char *error_mes
     printf("success: %s\n", success ? "true" : "false");
 }
 
-// Heuristique pour l'algorithme A* (distance euclidienne)
-double heuristic(long long current, long long goal) {
-    return fabs(current - goal);
-}
-
-// Implémente l'algorithme A* pour trouver le chemin le plus court
-void a_star(Graph *graph, long long start, long long end) {
+// Implémente l'algorithme de Dikjstra pour trouver le chemin le plus court
+void dikjstra(Graph *graph, long long start, long long end) {
     double distances[MAX_PLANETS]; // Tableau des distances minimales
-    double f_scores[MAX_PLANETS]; // Tableau des scores f (g + h)
     long long previous[MAX_PLANETS]; // Tableau des prédécesseurs
     int visited[MAX_PLANETS] = {0}; // Indique si une planète a été visitée
 
     // Initialisation des tableaux
     for (int i = 0; i < MAX_PLANETS; i++) {
         distances[i] = INFINITY;
-        f_scores[i] = INFINITY;
         previous[i] = -1;
     }
 
     distances[start] = 0.0; // La distance depuis le point de départ est 0
-    f_scores[start] = heuristic(start, end); // Score f initial
 
     for (int count = 0; count < MAX_PLANETS; count++) {
         long long current = -1;
-        double min_f_score = INFINITY;
+        double min_distance = INFINITY;
 
-        // Trouve le sommet non visité avec le plus petit score f
+        // Trouve le sommet non visité avec la plus petite distance
         for (int i = 0; i < MAX_PLANETS; i++) {
-            if (!visited[i] && f_scores[i] < min_f_score) {
+            if (!visited[i] && distances[i] < min_distance) {
                 current = i;
-                min_f_score = f_scores[i];
+                min_distance = distances[i];
             }
         }
 
@@ -141,10 +132,9 @@ void a_star(Graph *graph, long long start, long long end) {
             double weight = neighbor->edge.distance;
             if (!visited[dest] && distances[current] + weight < distances[dest]) {
                 distances[dest] = distances[current] + weight;
-                f_scores[dest] = distances[dest] + heuristic(dest, end);
                 previous[dest] = current; // Met à jour le prédécesseur
             }
-            neighbor = neighbor->next;
+            neighbor = neighbor->next; // Passe au voisin suivant
         }
     }
 
@@ -213,8 +203,8 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    // Exécute l'algorithme A*
-    a_star(graph, start, end);
+    // Exécute l'algorithme de Dikjstra
+    dikjstra(graph, start, end);
 
     return 0;
 }
