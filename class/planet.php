@@ -168,7 +168,7 @@ class planet
         $stmt->execute();
         $planet = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($planet) {
+        if ($planet && !empty($planet['name'])) {
             // Si la planète existe, générer l'URL de l'image
             $imageName = str_replace(' ', '_', $planet['image']);
             $imageMd5 = md5($imageName);

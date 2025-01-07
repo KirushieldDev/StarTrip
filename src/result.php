@@ -89,7 +89,7 @@ try {
     }
     $total_travel_time_in_minutes = $total_travel_time_in_hours * 60;
     $days = floor($total_travel_time_in_minutes / 1440);
-    $remaining_minutes = $total_travel_time_in_minutes % 1440;
+    $remaining_minutes = (int) $total_travel_time_in_minutes % 1440;
     $hours = floor($remaining_minutes / 60);
     $minutes = $remaining_minutes % 60;
 

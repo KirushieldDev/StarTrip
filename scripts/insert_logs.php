@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calcul en cours...</title>
+    <title>Loading...</title>
     <style>
-        /* CSS pour centrer le GIF */
+        /* CSS to centrer the GIF */
         body {
             margin: 0;
             display: flex;
@@ -16,14 +16,14 @@
             background-color: white;
         }
         #loader img {
-            width: 30vw; /* Taille du GIF */
+            width: 30vw; /* Size of the GIF */
             height: auto;
         }
     </style>
 </head>
 <body>
 <div id="loader">
-    <img src="../assets/loading.gif" alt="Chargement en cours..." />
+    <img src="../assets/loading.gif" alt="loading..." />
 </div>
 </body>
 </html>

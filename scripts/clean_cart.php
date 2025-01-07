@@ -1,7 +1,7 @@
 <?php
 global $cnx;
 require_once '../configs/config.php';
-
+ /* Delete all tickets from cart */
 try {
     $stmt = $cnx->prepare("
         DELETE FROM cart 
