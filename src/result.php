@@ -129,6 +129,12 @@ if (!empty($timePreference) && !empty($selectedTime)) {
             <form action="map.php" method="POST" class="m-0">
                 <input type="hidden" name="departurePlanetId" value="<?= htmlspecialchars($departurePlanetId) ?>">
                 <input type="hidden" name="arrivalPlanetId" value="<?= htmlspecialchars($arrivalPlanetId) ?>">
+                <?php echo"
+                <input type='hidden' name='legion'  value='" . htmlspecialchars($legion) . "'>
+                <input type='hidden' name='capacity'  value='" . htmlspecialchars($capacity) . "'>
+                <input type='hidden' name='timePreference'  value='" . htmlspecialchars($timePreference) . "'>
+                <input type='hidden' name='selectedTime'  value='" . htmlspecialchars($selectedTime) . "'>";
+                ?>
                 <button type="submit" class="btn btn-outline-light">
                     <i class="bi bi-map"></i> View on Map
                 </button>

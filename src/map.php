@@ -7,6 +7,13 @@ include '../include/navbar.inc.php';
 
 $departurePlanetId = $_POST['departurePlanetId'];
 $arrivalPlanetId = $_POST['arrivalPlanetId'];
+$legion = isset($_POST['legion']) ? $_POST['legion'] : 'Empty';
+$selectedShipId = $_POST['shipId'] ?? null;
+$capacity = trim($_POST['capacity'] ?? '');
+
+$timePreference = $_POST['timePreference'] ?? null;
+$selectedTime = $_POST['selectedTime'] ?? null;
+
 
 if ($departurePlanetId && $arrivalPlanetId) {
     $departure = Planet::getPlanetById($departurePlanetId, $cnx);
@@ -22,7 +29,6 @@ if ($departurePlanetId && $arrivalPlanetId) {
     header("Location: index.php" );
 }
 
-// Fetch all planets
 $query = $cnx->prepare("SELECT * FROM planet");
 $query->execute();
 $planets = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -55,18 +61,18 @@ if (!$outputData || !$outputData['success']) {
     die("Failed to load path data.");
 }
 
-$pathIds = $outputData['path'];  // Planet IDs in the path
-$distance = $outputData['distance'];  // Total distance
+$pathIds = $outputData['path'];
+$distance = $outputData['distance'];
 
-// Map path IDs to planet details for visualization
+
 $pathPlanets = array_filter($planets, fn($planet) => in_array($planet['id'], $pathIds));
 
-// Add path coordinates to mapData
+
 $pathCoordinates = [];
 foreach ($pathIds as $planetId) {
     $planet = array_filter($planets, fn($p) => $p['id'] == $planetId);
     if (!empty($planet)) {
-        $planet = reset($planet); // Get the first element of the filtered array
+        $planet = reset($planet);
         [$x, $y] = Planet::calculatePosition($planet['x'], $planet['sub_grid_x'], $planet['y'], $planet['sub_grid_y']);
         $pathCoordinates[] = [$x, $y];
     }
@@ -85,18 +91,27 @@ foreach ($pathIds as $planetId) {
 
 <div class="container mt-5">
     <div class="d-flex justify-content-between mb-4">
-        <a href="../src/index.php" class="btn btn-outline-light">
-            <i class="bi bi-arrow-left"></i> Back to Search
-        </a>
+        <form action="../src/result.php" method="post">
+            <input type="hidden" name="departurePlanetId" value="<?= htmlspecialchars($departurePlanetId) ?>">
+            <input type="hidden" name="arrivalPlanetId" value="<?= htmlspecialchars($arrivalPlanetId) ?>">
+            <input type="hidden" name="legion" value="<?= htmlspecialchars($legion) ?>">
+            <input type="hidden" name="capacity" value="<?= htmlspecialchars($capacity) ?>">
+            <input type="hidden" name="timePreference" value="<?= htmlspecialchars($timePreference) ?>">
+            <input type="hidden" name="selectedTime" value="<?= htmlspecialchars($selectedTime) ?>">
+
+            <button type="submit" class="btn btn-outline-light">
+                <i class="bi bi-arrow-left"></i> Back to Overview
+            </button>
+        </form>
     </div>
 
     <div class="text-center">
-        <h1 class="fw-bold mb-4">Map: <?= htmlspecialchars($departure['name']) ?>
-            → <?= htmlspecialchars($arrival['name']) ?></h1>
+        <h1 class="fw-bold mb-4">Map: <?= htmlspecialchars($departure['name']) ?> → <?= htmlspecialchars($arrival['name']) ?></h1>
     </div>
 
     <div id="map" class="rounded shadow"></div>
 </div>
+
 
 <script>
     const mapData = {
