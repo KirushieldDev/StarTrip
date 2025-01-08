@@ -77,6 +77,8 @@ try {
 3. Dupliquez le fichier ```java/src/main/java/fr/uge/DatabaseConnection.backup``` et renommez le ```java/src/main/java/fr/uge/DatabaseConnection.java```
 4. Modifiez le fichier ```java/src/main/java/fr/uge/DatabaseConnection.java``` en remplacant les valeurs par celles de votre base de données MySQL
 ```java
+package fr.uge;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
