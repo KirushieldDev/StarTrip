@@ -2,6 +2,8 @@
 global $cnx;
 require_once '../configs/config.php';
 
+// Create all table for the database
+
 try {
     // Read and execute SQL files
     $sqlFiles = [
