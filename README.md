@@ -96,7 +96,8 @@ public class fr.uge.DatabaseConnection {
 ```bash
 gcc -o a-etoile.exe C/a-etoile.c
 ```
-7. Placez-vous dans le dossier ```java``` puis lancez la commande :
+7. Dans le fichier ```java/src/main/java/fr/uge/QueryData.java``` il faut remplacer le ```startrip_path``` par le chemin absolu du projet
+8. Placez-vous dans le dossier ```java``` puis lancez la commande :
 ```bash
 mvn clean package
 ```
