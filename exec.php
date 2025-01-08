@@ -1,36 +1,6 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calcul en cours...</title>
-    <style>
-        /* CSS pour centrer le GIF */
-        body {
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: white;
-        }
-        #loader img {
-            width: 30vw; /* Taille du GIF */
-            height: auto;
-        }
-    </style>
-</head>
-<body>
-<div id="loader">
-    <img src="assets/loading.gif" alt="Chargement en cours..." />
-</div>
-</body>
-</html>
-
-
-
 <?php
-sleep(2);
+include('include/loadingpage.inc.php');
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header("Location: src/index.php");
     exit();
