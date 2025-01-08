@@ -3,7 +3,6 @@
 #include <limits.h>
 #include <math.h> // Pour la fonction sqrt
 
-#define INFINITY LLONG_MAX // Distance infinie
 #define MAX_PLANETS 6000 // Nombre maximum de planètes dans le graphe
 #define MAX_TRIPS 128000 // Nombre maximum de voyages
 

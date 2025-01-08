@@ -43,18 +43,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     $selectedTime = $_POST['selectedTime'] ?? null;
 
     $InProd = false;
-    if($InProd){
-        exec("java -Dfile.encoding=UTF-8 -jar java/target/java-1.0-SNAPSHOT.jar " . $legion . " " . $capacity . " 2>&1", $output, $returnCode);
-    }else{
+    if ($InProd) {
+        exec("java -Dfile.encoding=UTF-8 -jar java/target/java-1.0-SNAPSHOT.jar " . $legion . " " . $capacity . ' ' . $departurePlanet . ' ' . $arrivalPlanet . " 2>&1", $output, $returnCode);
+    } else {
         exec('java -jar java/target/java-1.0-SNAPSHOT.jar ' . $legion . ' ' . $capacity . ' ' . $departurePlanet . ' ' . $arrivalPlanet);
     }
-/*
-    //Mettre votre chemin vers a-etoile.exe
-    $exePath = 'C:\Users\alexi\BUT2\StarTrip\a-etoile.exe';
-    $output = [];
-    $returnVar = 0;
-    exec("$exePath $departurePlanet $arrivalPlanet", $output, $returnVar);
-*/
+
     echo "
         <form id='redirectForm' action='src/result.php' method='POST'>
             <input type='hidden' name='departurePlanetId' value='$departurePlanet'>
