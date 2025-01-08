@@ -46,10 +46,6 @@ function getDiameterScale(diameter) {
     if (diameter > 200000) return 1.0;
 }
 
-function getDiameterPlanet(diameter) {
-    return diameter / 10000 * 0.5;
-}
-
 mapData.allPlanets.forEach(planet => {
     const planetCoordinates = planet.coordinates;
     const planetRegion = planet.region;
@@ -76,7 +72,7 @@ const departureCircle = L.circle(departureCoordinates, {
     color: 'white',
     fillColor: 'white',
     fillOpacity: 1,
-    radius: getDiameterPlanet(departureDiameter)
+    radius: getDiameterScale(departureDiameter)
 }).addTo(map)
     .bindPopup(`
         <div style="text-align: center;">
@@ -90,7 +86,7 @@ const arrivalCircle = L.circle(arrivalCoordinates, {
     color: 'white',
     fillColor: 'white',
     fillOpacity: 1,
-    radius: getDiameterPlanet(arrivalDiameter)
+    radius: getDiameterScale(arrivalDiameter)
 }).addTo(map)
     .bindPopup(`
         <div style="text-align: center;">
@@ -127,7 +123,7 @@ legend.onAdd = function () {
     const diameters = [0, 50000, 100000, 150000, 200000, 250000];
 
     diameters.forEach(diameter => {
-        const size = getDiameterPlanet(diameter);
+        const size = getDiameterScale(diameter);
         legendContent += `
             <div style="margin: 5px 0; display: flex; align-items: center;">
                 <i style="
