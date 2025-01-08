@@ -1,12 +1,13 @@
 configs/config.php
 java/src/main/java/fr/uge/DatabaseConnection.java
 java/src/DatabaseConnection.java
+java/target
+java/*.xml
 .idea/
 graph.txt
 out/
 *.exe
 *.iml
 output.json
-*.jar
 *.class
 C/graph

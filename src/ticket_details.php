@@ -206,11 +206,7 @@ try {
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure you want to cancel this booking? This action cannot be undone.</p>
-                    <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
-                        All segments associated with this booking will also be cancelled.
-                    </div>
+                    <p>Are you sure you want to cancel this booking ?</p>
                     <div class="d-flex justify-content-between border-top border-secondary pt-3 mt-3">
                         <div>
                             <strong><?= htmlspecialchars($ticket['departure_name']) ?></strong>
