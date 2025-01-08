@@ -72,6 +72,17 @@ public class QueryData {
                 }
             }
 
+            if (args.length < 4) {
+                return;
+            }
+
+            String startrip_path = "C:\\Users\\root\\IdeaProjects\\StarTrip";
+
+            // Start pathfinding
+            ProcessBuilder pb = new ProcessBuilder(startrip_path.concat("\\a-etoile.exe"), args[2], args[3]);
+            pb.directory(new File(startrip_path));
+            pb.start();
+
         } catch (SQLException | IOException e) {
             e.printStackTrace();
         }
