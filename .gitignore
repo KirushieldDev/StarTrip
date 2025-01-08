@@ -9,6 +9,5 @@ out/
 *.exe
 *.iml
 output.json
-*.jar
 *.class
 C/graph
