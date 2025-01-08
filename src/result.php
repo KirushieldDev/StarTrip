@@ -61,8 +61,8 @@ try {
     echo "Error: " . $e->getMessage();
 }
 $success = $outputData['success'];
-$segment_distances = $outputData['segment_distances'];
 if ($success){
+    $segment_distances = $outputData['segment_distances'];
     try {
         $total_travel_time_in_hours = 0;
         for ($i = 0; $i < count($outputData['path']) - 1; $i++) {

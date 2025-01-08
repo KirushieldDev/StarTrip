@@ -45,6 +45,9 @@ function getDiameterScale(diameter) {
     if (diameter > 150000 && diameter <= 200000) return 0.8;
     if (diameter > 200000) return 1.0;
 }
+function getDiameterPlanet(diameter) {
+    return diameter / 10000 * 0.5;
+}
 
 mapData.allPlanets.forEach(planet => {
     const planetCoordinates = planet.coordinates;
@@ -123,7 +126,7 @@ legend.onAdd = function () {
     const diameters = [0, 50000, 100000, 150000, 200000, 250000];
 
     diameters.forEach(diameter => {
-        const size = getDiameterScale(diameter);
+        const size = getDiameterPlanet(diameter);
         legendContent += `
             <div style="margin: 5px 0; display: flex; align-items: center;">
                 <i style="
