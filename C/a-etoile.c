@@ -216,5 +216,8 @@ int main(int argc, char *argv[]) {
     // Exécute l'algorithme A*
     a_star(graph, start, end);
 
+    // Supprime graph.txt
+    remove("graph.txt");
+
     return 0;
 }

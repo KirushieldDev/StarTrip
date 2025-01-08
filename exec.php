@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>loading...</title>
+    <title>Calcul en cours...</title>
     <style>
-        /* CSS to centrer the GIF */
+        /* CSS pour centrer le GIF */
         body {
             margin: 0;
             display: flex;
@@ -15,14 +15,14 @@
             background-color: white;
         }
         #loader img {
-            width: 30vw; /* Size of the GIF */
+            width: 30vw; /* Taille du GIF */
             height: auto;
         }
     </style>
 </head>
 <body>
 <div id="loader">
-    <img src="assets/loading.gif" alt="loading..." />
+    <img src="assets/loading.gif" alt="Chargement en cours..." />
 </div>
 </body>
 </html>
@@ -46,15 +46,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     if($InProd){
         exec("java -Dfile.encoding=UTF-8 -jar java/target/java-1.0-SNAPSHOT.jar " . $legion . " " . $capacity . " 2>&1", $output, $returnCode);
     }else{
-        exec('java -jar java/target/java-1.0-SNAPSHOT.jar ' . $legion . ' ' . $capacity);
+        exec('java -jar java/target/java-1.0-SNAPSHOT.jar ' . $legion . ' ' . $capacity . ' ' . $departurePlanet . ' ' . $arrivalPlanet);
     }
-
+/*
     //Mettre votre chemin vers a-etoile.exe
-    $exePath = '"C:\wamp64\www\StarTrip\a-etoile.exe"';
+    $exePath = 'C:\Users\alexi\BUT2\StarTrip\a-etoile.exe';
     $output = [];
     $returnVar = 0;
     exec("$exePath $departurePlanet $arrivalPlanet", $output, $returnVar);
-
+*/
     echo "
         <form id='redirectForm' action='src/result.php' method='POST'>
             <input type='hidden' name='departurePlanetId' value='$departurePlanet'>

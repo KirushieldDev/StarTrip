@@ -72,6 +72,12 @@ public class QueryData {
                 }
             }
 
+            // Start pathfinding algorithm and pass args[2] (departure) and args[3] (arrival) as parameters.
+            ProcessBuilder pb = new ProcessBuilder("C:\\Users\\root\\IdeaProjects\\StarTrip\\a-etoile.exe", args[2], args[3]);
+            pb.directory(new File("C:\\Users\\root\\IdeaProjects\\StarTrip"));
+            pb.start();
+            // Output is located in output.json so no need to redirect output
+
         } catch (SQLException | IOException e) {
             e.printStackTrace();
         }
