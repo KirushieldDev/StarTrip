@@ -78,8 +78,10 @@ public class QueryData {
 
             String startrip_path = "C:\\Users\\root\\IdeaProjects\\StarTrip";
 
+            String exe_path = System.getProperty("os.name").toLowerCase().contains("linux") ? "/a-etoile.exe" : "\\a-etoile.exe";
+
             // Start pathfinding
-            ProcessBuilder pb = new ProcessBuilder(startrip_path.concat("\\a-etoile.exe"), args[2], args[3]);
+            ProcessBuilder pb = new ProcessBuilder(startrip_path.concat(exe_path), args[2], args[3]);
             pb.directory(new File(startrip_path));
             pb.start();
 
