@@ -60,51 +60,52 @@ try {
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage();
 }
+$success = $outputData['success'];
+$segment_distances = $outputData['segment_distances'];
+if ($success){
+    try {
+        $total_travel_time_in_hours = 0;
+        for ($i = 0; $i < count($outputData['path']) - 1; $i++) {
+            $currentPlanetId = $outputData['path'][$i];
+            $nextPlanetId = $outputData['path'][$i + 1];
 
-try {
-    $total_travel_time_in_hours = 0;
-    $segment_distances = $outputData['segment_distances'];
-
-    for ($i = 0; $i < count($outputData['path']) - 1; $i++) {
-        $currentPlanetId = $outputData['path'][$i];
-        $nextPlanetId = $outputData['path'][$i + 1];
-
-        $ship_stmt = $cnx->prepare("
+            $ship_stmt = $cnx->prepare("
             SELECT s.speed_kmh
             FROM ship s
             INNER JOIN trip t ON s.id = t.ship_id
             WHERE t.planet_id = :departure_id AND t.destination_planet_id = :arrival_id
         ");
-        $ship_stmt->execute([':departure_id' => $currentPlanetId, ':arrival_id' => $nextPlanetId]);
-        $available_ships = $ship_stmt->fetchAll(PDO::FETCH_ASSOC);
+            $ship_stmt->execute([':departure_id' => $currentPlanetId, ':arrival_id' => $nextPlanetId]);
+            $available_ships = $ship_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        if (empty($available_ships)) {
-            throw new Exception("No available ships for the segment from $currentPlanetId to $nextPlanetId");
+            if (empty($available_ships)) {
+                throw new Exception("No available ships for the segment from $currentPlanetId to $nextPlanetId");
+            }
+            $ship = $available_ships[0];
+            $speed = $ship['speed_kmh'];
+            $segment_distance = $segment_distances[$i];
+            $segment_time_in_hours = $segment_distance / $speed;
+            $total_travel_time_in_hours += $segment_time_in_hours;
         }
-        $ship = $available_ships[0];
-        $speed = $ship['speed_kmh'];
-        $segment_distance = $segment_distances[$i];
-        $segment_time_in_hours = $segment_distance / $speed;
-        $total_travel_time_in_hours += $segment_time_in_hours;
+        $total_travel_time_in_minutes = $total_travel_time_in_hours * 60;
+        $days = floor($total_travel_time_in_minutes / 1440);
+        $remaining_minutes = (int) $total_travel_time_in_minutes % 1440;
+        $hours = floor($remaining_minutes / 60);
+        $minutes = $remaining_minutes % 60;
+
+    } catch (Exception $e) {
+        echo "Error: " . $e->getMessage();
     }
-    $total_travel_time_in_minutes = $total_travel_time_in_hours * 60;
-    $days = floor($total_travel_time_in_minutes / 1440);
-    $remaining_minutes = (int) $total_travel_time_in_minutes % 1440;
-    $hours = floor($remaining_minutes / 60);
-    $minutes = $remaining_minutes % 60;
 
-} catch (Exception $e) {
-    echo "Error: " . $e->getMessage();
-}
+    if (!empty($timePreference) && !empty($selectedTime)) {
+        $selectedDateTime = new DateTime($selectedTime);
+        $total_travel_time_in_seconds = ($days * 24 * 3600) + ($hours * 3600) + ($minutes * 60);
+        if ($timePreference === 'departure') {
+            $selectedDateTime->add(new DateInterval('PT' . $total_travel_time_in_seconds . 'S'));
+        } elseif ($timePreference === 'arrival') {
+            $selectedDateTime->sub(new DateInterval('PT' . $total_travel_time_in_seconds . 'S'));
 
-if (!empty($timePreference) && !empty($selectedTime)) {
-    $selectedDateTime = new DateTime($selectedTime);
-    $total_travel_time_in_seconds = ($days * 24 * 3600) + ($hours * 3600) + ($minutes * 60);
-    if ($timePreference === 'departure') {
-        $selectedDateTime->add(new DateInterval('PT' . $total_travel_time_in_seconds . 'S'));
-    } elseif ($timePreference === 'arrival') {
-        $selectedDateTime->sub(new DateInterval('PT' . $total_travel_time_in_seconds . 'S'));
-
+        }
     }
 }
 
@@ -125,7 +126,7 @@ if (!empty($timePreference) && !empty($selectedTime)) {
             <i class="bi bi-arrow-left"></i> Back to Search
         </a>
 
-        <?php if ($departurePlanetDetails && $arrivalPlanetDetails): ?>
+        <?php if ($departurePlanetDetails && $arrivalPlanetDetails && $success ): ?>
             <form action="map.php" method="POST" class="m-0">
                 <input type="hidden" name="departurePlanetId" value="<?= htmlspecialchars($departurePlanetId) ?>">
                 <input type="hidden" name="arrivalPlanetId" value="<?= htmlspecialchars($arrivalPlanetId) ?>">
