@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     } else {
         exec('java -jar java/target/java-1.0-SNAPSHOT.jar ' . $legion . ' ' . $capacity . ' ' . $departurePlanet . ' ' . $arrivalPlanet);
     }
-
+    sleep(2);
     echo "
         <form id='redirectForm' action='src/result.php' method='POST'>
             <input type='hidden' name='departurePlanetId' value='$departurePlanet'>
