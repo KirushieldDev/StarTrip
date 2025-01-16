@@ -1,6 +1,7 @@
 package fr.uge;
 
 import java.io.*;
+import java.net.URISyntaxException;
 import java.sql.*;
 
 public class QueryData {
@@ -76,12 +77,22 @@ public class QueryData {
                 return;
             }
 
-            String startrip_path = "C:\\Users\\root\\IdeaProjects\\StarTrip";
+            String classPath;
+            try {
+                classPath = QueryData.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+                return;
+            }
 
+            File classFile = new File(classPath);
+            File projectRoot = classFile.getParentFile().getParentFile().getParentFile();
             String exe_path = System.getProperty("os.name").toLowerCase().contains("linux") ? "/a-etoile.exe" : "\\a-etoile.exe";
+            String startrip_path = projectRoot.getAbsolutePath();
+            String fullExePath = startrip_path + exe_path;
 
             // Start pathfinding
-            ProcessBuilder pb = new ProcessBuilder(startrip_path.concat(exe_path), args[2], args[3]);
+            ProcessBuilder pb = new ProcessBuilder(fullExePath, args[2], args[3]);
             pb.directory(new File(startrip_path));
             pb.start();
 
